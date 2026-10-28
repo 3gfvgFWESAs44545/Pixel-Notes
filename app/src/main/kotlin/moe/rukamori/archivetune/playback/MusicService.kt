@@ -224,7 +224,6 @@ import moe.rukamori.archivetune.playback.queues.filterBlockedArtists
 import moe.rukamori.archivetune.playback.queues.filterExplicit
 import moe.rukamori.archivetune.playback.queues.filterVideo
 import moe.rukamori.archivetune.playback.queues.hasBlockedArtist
-import moe.rukamori.archivetune.sponsorblock.SponsorBlockPlaybackController
 import moe.rukamori.archivetune.storage.StorageFolderKind
 import moe.rukamori.archivetune.storage.StorageLocationRepository
 import moe.rukamori.archivetune.utils.CoilBitmapLoader
@@ -299,9 +298,6 @@ class MusicService :
 
     @Inject
     lateinit var nextStreamPreloader: NextStreamPreloader
-
-    @Inject
-    lateinit var sponsorBlockPlaybackController: SponsorBlockPlaybackController
 
     private var playbackPreloadConfiguration: PlaybackPreloadConfiguration? = null
 
@@ -921,7 +917,6 @@ class MusicService :
                     sleepTimer = SleepTimer(scope, this, this@MusicService)
                     addListener(sleepTimer)
                 }
-        sponsorBlockPlaybackController.attach(player, scope)
         playerInitialized.value = true
         observePlaybackPreloadConfiguration()
             .collect(scope) { configuration ->
@@ -5466,7 +5461,6 @@ class MusicService :
     override fun onDestroy() {
         binder.release()
         equalizerPlaybackController.detach(this)
-        sponsorBlockPlaybackController.detach()
         super.onDestroy()
         playbackErrorRecoveryJob?.cancel()
         effectiveVolumeRampJob?.cancel()
@@ -5646,8 +5640,6 @@ class MusicService :
     }
 
     companion object {
-        ): Boolean = (isHostSessionActive && isPlaybackInactive) || stopMusicOnTaskClearEnabled
-
         const val ROOT = "root"
         const val HOME = "home"
         const val LIBRARY = "library"

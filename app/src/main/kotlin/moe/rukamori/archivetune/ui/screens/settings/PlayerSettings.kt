@@ -60,7 +60,6 @@ import moe.rukamori.archivetune.constants.SeekExtraSeconds
 import moe.rukamori.archivetune.constants.SkipSilenceKey
 import moe.rukamori.archivetune.constants.StopMusicOnTaskClearKey
 import moe.rukamori.archivetune.constants.WakelockKey
-import moe.rukamori.archivetune.sponsorblock.DEFAULT_SPONSOR_BLOCK_API_URL
 import moe.rukamori.archivetune.ui.component.ArtistSeparatorsDialog
 import moe.rukamori.archivetune.ui.component.CrossfadeSliderPreference
 import moe.rukamori.archivetune.ui.component.EnumListPreference
@@ -79,9 +78,6 @@ import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.PlaybackPerformanceSettingsUiState
 import moe.rukamori.archivetune.viewmodels.PlaybackPerformanceSettingsViewModel
-import moe.rukamori.archivetune.viewmodels.SponsorBlockCategoryUiModel
-import moe.rukamori.archivetune.viewmodels.SponsorBlockSettingsScreenState
-import moe.rukamori.archivetune.viewmodels.SponsorBlockSettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,49 +97,6 @@ fun PlayerSettings(navController: NavController) {
     val onPlaybackPerformanceRetry =
         remember(playbackPerformanceSettingsViewModel) {
             playbackPerformanceSettingsViewModel::retry
-        }
-    val sponsorBlockSettingsViewModel: SponsorBlockSettingsViewModel = hiltViewModel()
-    val sponsorBlockSettingsState by
-        sponsorBlockSettingsViewModel.uiState.collectAsStateWithLifecycle()
-    val onSponsorBlockEnabledChange =
-        remember(sponsorBlockSettingsViewModel) {
-            sponsorBlockSettingsViewModel::onEnabledChange
-        }
-    val onSponsorBlockCategorySheetOpen =
-        remember(sponsorBlockSettingsViewModel) {
-            sponsorBlockSettingsViewModel::onCategorySheetOpen
-        }
-    val onSponsorBlockCategorySheetDismiss =
-        remember(sponsorBlockSettingsViewModel) {
-            sponsorBlockSettingsViewModel::onCategorySheetDismiss
-        }
-    val onSponsorBlockCategoryCheckedChange =
-        remember(sponsorBlockSettingsViewModel) {
-            sponsorBlockSettingsViewModel::onCategoryOptionCheckedChange
-        }
-    val onSponsorBlockCategorySelectionConfirm =
-        remember(sponsorBlockSettingsViewModel) {
-            sponsorBlockSettingsViewModel::onCategorySelectionConfirm
-        }
-    val onSponsorBlockApiUrlEditorOpen =
-        remember(sponsorBlockSettingsViewModel) {
-            sponsorBlockSettingsViewModel::onApiUrlEditorOpen
-        }
-    val onSponsorBlockApiUrlEditorDismiss =
-        remember(sponsorBlockSettingsViewModel) {
-            sponsorBlockSettingsViewModel::onApiUrlEditorDismiss
-        }
-    val onSponsorBlockApiUrlDraftChange =
-        remember(sponsorBlockSettingsViewModel) {
-            sponsorBlockSettingsViewModel::onApiUrlDraftChange
-        }
-    val onSponsorBlockApiUrlConfirm =
-        remember(sponsorBlockSettingsViewModel) {
-            sponsorBlockSettingsViewModel::onApiUrlConfirm
-        }
-    val onSponsorBlockRetry =
-        remember(sponsorBlockSettingsViewModel) {
-            sponsorBlockSettingsViewModel::retry
         }
     val (audioQuality, onAudioQualityChange) =
         rememberEnumPreference(
@@ -286,13 +239,6 @@ fun PlayerSettings(navController: NavController) {
             maxLines = 1,
         )
     }
-
-    SponsorBlockApiUrlDialog(
-        state = sponsorBlockSettingsState,
-        onValueChange = onSponsorBlockApiUrlDraftChange,
-        onConfirm = onSponsorBlockApiUrlConfirm,
-        onDismiss = onSponsorBlockApiUrlEditorDismiss,
-    )
 
     Scaffold(
         topBar = {
@@ -476,8 +422,6 @@ fun PlayerSettings(navController: NavController) {
                 }
             }
 
-            // Pixel Notes: SponsorBlock (YouTube segment skipping) removed.
-
             PreferenceGroup(title = stringResource(R.string.queue)) {
                 item {
                     SwitchPreference(
@@ -554,114 +498,6 @@ fun PlayerSettings(navController: NavController) {
         }
     }
 }
-
-@Composable
-private fun SponsorBlockApiUrlDialog(
-    state: SponsorBlockSettingsScreenState,
-    onValueChange: (String) -> Unit,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val data = (state as? SponsorBlockSettingsScreenState.Success)?.data ?: return
-    if (!data.isApiUrlEditorVisible) return
-    val isInputValid =
-        remember(data.isApiUrlDraftValid) {
-            { _: String -> data.isApiUrlDraftValid }
-        }
-    val confirmValue =
-        remember(onConfirm) {
-            { _: String -> onConfirm() }
-        }
-
-    TextFieldDialog(
-        title = { Text(stringResource(R.string.sponsor_block_api_url)) },
-        textFieldValue = data.apiUrlDraft,
-        onTextFieldValueChange = onValueChange,
-        keyboardOptions =
-            KeyboardOptions(
-                keyboardType = KeyboardType.Uri,
-                imeAction = ImeAction.Done,
-            ),
-        isInputValid = isInputValid,
-        dismissOnDone = false,
-        onDone = confirmValue,
-        onDismiss = onDismiss,
-    )
-}
-
-private fun PreferenceGroupScope.sponsorBlockPreferences(
-    state: SponsorBlockSettingsScreenState,
-    onEnabledChange: (Boolean) -> Unit,
-    onCategorySheetOpen: () -> Unit,
-    onCategorySheetDismiss: () -> Unit,
-    onCategoryCheckedChange: (SponsorBlockCategoryUiModel, Boolean) -> Unit,
-    onCategorySelectionConfirm: () -> Unit,
-    onApiUrlEditorOpen: () -> Unit,
-    onRetry: () -> Unit,
-) {
-    val data = (state as? SponsorBlockSettingsScreenState.Success)?.data
-    val controlsEnabled = data != null
-    val configurationEnabled = controlsEnabled && data?.enabled == true
-    val categoryOptions = data?.categoryOptions ?: EMPTY_SPONSOR_BLOCK_CATEGORY_OPTIONS
-    val draftCategoryOptions = data?.draftCategoryOptions ?: EMPTY_SPONSOR_BLOCK_CATEGORY_OPTIONS
-
-    item {
-        SwitchPreference(
-            title = { Text(stringResource(R.string.sponsor_block_use)) },
-            icon = { Icon(painterResource(R.drawable.block), null) },
-            checked = data?.enabled ?: false,
-            onCheckedChange = onEnabledChange,
-            isEnabled = controlsEnabled,
-        )
-    }
-
-    item {
-        val selectedCount = data?.selectedCategoryOptions?.size ?: 0
-        MultiSelectListPreference(
-            title = { Text(stringResource(R.string.sponsor_block_categories)) },
-            description = stringResource(R.string.sponsor_block_categories_desc),
-            icon = { Icon(painterResource(R.drawable.fast_forward), null) },
-            values = categoryOptions,
-            checkedValues = draftCategoryOptions,
-            selectionText =
-                androidx.compose.ui.res.pluralStringResource(
-                    R.plurals.n_selected,
-                    selectedCount,
-                    selectedCount,
-                ),
-            valueText = { option -> stringResource(option.labelRes) },
-            isBottomSheetVisible = data?.isCategorySheetVisible == true,
-            onOpen = onCategorySheetOpen,
-            onDismiss = onCategorySheetDismiss,
-            onValueCheckedChange = onCategoryCheckedChange,
-            onConfirm = onCategorySelectionConfirm,
-            isEnabled = configurationEnabled,
-        )
-    }
-
-    item {
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.sponsor_block_api_url)) },
-            description = data?.apiUrl ?: DEFAULT_SPONSOR_BLOCK_API_URL,
-            icon = { Icon(painterResource(R.drawable.link), null) },
-            onClick = onApiUrlEditorOpen,
-            isEnabled = configurationEnabled,
-        )
-    }
-
-    if (state is SponsorBlockSettingsScreenState.Error) {
-        item {
-            PreferenceEntry(
-                title = { Text(stringResource(R.string.retry)) },
-                description = stringResource(state.messageRes),
-                onClick = onRetry,
-            )
-        }
-    }
-}
-
-private val EMPTY_SPONSOR_BLOCK_CATEGORY_OPTIONS: ImmutableList<SponsorBlockCategoryUiModel> =
-    ImmutableList.of()
 
 private fun PreferenceGroupScope.playbackPerformancePreferences(
     state: PlaybackPerformanceSettingsUiState,

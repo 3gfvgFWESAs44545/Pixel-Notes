@@ -28,8 +28,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import moe.rukamori.archivetune.BuildConfig
-import moe.rukamori.archivetune.constants.UpdateChannel
-import moe.rukamori.archivetune.defaultUpdateChannel
 import moe.rukamori.archivetune.musicrecognition.MusicRecognitionRoute
 import moe.rukamori.archivetune.musicrecognition.MusicRecognitionDetailsRoute
 import moe.rukamori.archivetune.ui.screens.BrowseScreen
@@ -56,13 +54,11 @@ import moe.rukamori.archivetune.ui.screens.search.OnlineSearchResultRoute
 import moe.rukamori.archivetune.ui.screens.search.OnlineSearchResultRoutePrefix
 import moe.rukamori.archivetune.ui.screens.search.SearchScreen
 import moe.rukamori.archivetune.ui.screens.settings.AboutScreen
-import moe.rukamori.archivetune.ui.screens.settings.AccountSettings
 import moe.rukamori.archivetune.ui.screens.settings.AodCustomizedScreen
 import moe.rukamori.archivetune.ui.screens.settings.AndroidAutoSettings
 import moe.rukamori.archivetune.ui.screens.settings.CanvasSettings
 import moe.rukamori.archivetune.ui.screens.settings.AppearanceSettings
 import moe.rukamori.archivetune.ui.screens.settings.BackupAndRestore
-import moe.rukamori.archivetune.ui.screens.settings.ChangelogScreen
 import moe.rukamori.archivetune.ui.screens.settings.CustomizeBackground
 import moe.rukamori.archivetune.ui.screens.settings.DebugSettings
 import moe.rukamori.archivetune.ui.screens.settings.HiddenPlaylistsScreen
@@ -74,7 +70,6 @@ import moe.rukamori.archivetune.ui.screens.settings.PrivacySettings
 import moe.rukamori.archivetune.ui.screens.settings.SettingsScreen
 import moe.rukamori.archivetune.ui.screens.settings.StorageSettings
 import moe.rukamori.archivetune.ui.screens.settings.ThemeCreatorScreen
-import moe.rukamori.archivetune.ui.screens.settings.UpdateScreen
 import moe.rukamori.archivetune.viewmodels.HomeViewModel
 import moe.rukamori.archivetune.viewmodels.OnlineSearchSort
 
@@ -83,9 +78,7 @@ fun NavGraphBuilder.navigationBuilder(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
     homeViewModel: HomeViewModel,
-    latestVersionName: () -> String,
     disableAnimations: Boolean = false,
-    onClearUpdateBadge: () -> Unit = {},
     homeScrollConnection: NestedScrollConnection? = null,
     searchScrollConnection: NestedScrollConnection? = null,
     onlineSearchSort: OnlineSearchSort = OnlineSearchSort.DEFAULT,
@@ -396,7 +389,7 @@ fun NavGraphBuilder.navigationBuilder(
         YouTubeBrowseScreen(navController)
     }
     composable("settings") {
-        SettingsScreen(navController, latestVersionName())
+        SettingsScreen(navController)
     }
     composable(moe.rukamori.archivetune.ui.screens.library.LibraryPlaylistsRoute) {
         moe.rukamori.archivetune.ui.screens.library.LibraryPlaylistsPage(navController)
@@ -412,13 +405,6 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable(KhinsiderSignInRoute) {
         KhinsiderSignInScreen(navController)
-    }
-    composable("settings/account") {
-        AccountSettings(
-            navController = navController,
-            latestVersionName = latestVersionName(),
-            viewModel = homeViewModel,
-        )
     }
     composable("settings/hidden_playlists") {
         HiddenPlaylistsScreen(navController)
@@ -464,26 +450,6 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/logcat") {
         LogcatScreen(navController)
-    }
-    if (BuildConfig.UPDATER_AVAILABLE) {
-        composable("settings/update") {
-            UpdateScreen(navController, onUpToDate = onClearUpdateBadge)
-        }
-    }
-    composable(
-        route = "settings/changelog?channel={channel}",
-        arguments =
-            listOf(
-                navArgument("channel") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                },
-            ),
-    ) { backStackEntry ->
-        val channelName = backStackEntry.arguments?.getString("channel")
-        val channel = UpdateChannel.fromStoredName(channelName, defaultUpdateChannel)
-        ChangelogScreen(navController, channel = channel)
     }
     composable("settings/about") {
         AboutScreen(navController)

@@ -38,12 +38,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.constants.AiApiKeyKey
-import moe.rukamori.archivetune.constants.AiApiValidationStatus
-import moe.rukamori.archivetune.constants.AiApiValidationStatusKey
-import moe.rukamori.archivetune.constants.AiCustomEndpointKey
-import moe.rukamori.archivetune.constants.AiProvider
-import moe.rukamori.archivetune.constants.AiProviderKey
 import moe.rukamori.archivetune.constants.AlbumFilter
 import moe.rukamori.archivetune.constants.AlbumFilterKey
 import moe.rukamori.archivetune.constants.AlbumSortDescendingKey
@@ -80,13 +74,8 @@ import moe.rukamori.archivetune.extensions.toEnum
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.library.LibrarySyncFailure
 import moe.rukamori.archivetune.library.LibrarySyncTarget
-import moe.rukamori.archivetune.library.LibraryTopMix
-import moe.rukamori.archivetune.library.ObserveLibraryTopMixesUseCase
 import moe.rukamori.archivetune.library.RefreshLibraryResult
 import moe.rukamori.archivetune.library.RefreshLibraryUseCase
-import moe.rukamori.archivetune.library.RefreshLibraryTopMixesResult
-import moe.rukamori.archivetune.library.RefreshLibraryTopMixesUseCase
-import moe.rukamori.archivetune.library.TopMixGenerationFailure
 import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.models.toMediaMetadata
 import moe.rukamori.archivetune.playback.DownloadUtil
@@ -527,75 +516,7 @@ class LibraryMixViewModel
         @ApplicationContext private val context: Context,
         private val database: MusicDatabase,
         refreshLibrary: RefreshLibraryUseCase,
-        observeLibraryTopMixes: ObserveLibraryTopMixesUseCase,
-        private val refreshLibraryTopMixes: RefreshLibraryTopMixesUseCase,
     ) : LibraryRefreshViewModel(refreshLibrary) {
-        private val _isTopMixRefreshing = MutableStateFlow(false)
-        private val _topMixInitialError = MutableStateFlow<String?>(null)
-        private val _topMixEvents = MutableSharedFlow<String>()
-        val topMixEvents = _topMixEvents.asSharedFlow()
-        private var hasRequestedInitialTopMixGeneration = false
-
-        private val isTopMixAiAvailable =
-            context.dataStore.data
-                .map { prefs ->
-                    val provider = prefs[AiProviderKey].toEnum(AiProvider.NONE)
-                    provider != AiProvider.NONE &&
-                        prefs[AiApiKeyKey].orEmpty().isNotBlank() &&
-                        (provider != AiProvider.CUSTOM || prefs[AiCustomEndpointKey].orEmpty().isNotBlank()) &&
-                        prefs[AiApiValidationStatusKey].toEnum(AiApiValidationStatus.UNKNOWN) != AiApiValidationStatus.FAILED
-                }.distinctUntilChanged()
-                .stateIn(viewModelScope, SharingStarted.Lazily, false)
-
-        private val observedTopMixes =
-            observeLibraryTopMixes()
-                .map<List<LibraryTopMix>, List<LibraryTopMix>?> { it }
-                .catch { throwable ->
-                    if (throwable is CancellationException) throw throwable
-                    reportException(throwable)
-                    _topMixInitialError.value = context.getString(R.string.library_top_mixes_failed)
-                    emit(emptyList())
-                }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-        val topMixesUiState =
-            combine(
-                observedTopMixes,
-                isTopMixAiAvailable,
-                _isTopMixRefreshing,
-                _topMixInitialError,
-            ) { mixes, isAiAvailable, isRefreshing, initialError ->
-                when {
-                    mixes == null -> {
-                        LibraryTopMixesUiState.Loading
-                    }
-
-                    initialError != null && mixes.isEmpty() -> {
-                        LibraryTopMixesUiState.Error(initialError)
-                    }
-
-                    mixes.isNotEmpty() -> {
-                        LibraryTopMixesUiState.Success(
-                            mixes = ImmutableList.copyOf(mixes.map { it.toUiModel() }),
-                            isRefreshing = isRefreshing,
-                        )
-                    }
-
-                    !isAiAvailable -> {
-                        LibraryTopMixesUiState.Empty(
-                            reason = LibraryTopMixEmptyReason.AI_NOT_CONFIGURED,
-                            isRefreshing = isRefreshing,
-                        )
-                    }
-
-                    else -> {
-                        LibraryTopMixesUiState.Empty(
-                            reason = LibraryTopMixEmptyReason.NO_RECENT_HISTORY,
-                            isRefreshing = isRefreshing,
-                        )
-                    }
-                }
-            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibraryTopMixesUiState.Loading)
-
         val mostPlayedAlbumUiState =
             context.dataStore.data
                 .map { it[HideExplicitKey] ?: false }
@@ -639,79 +560,9 @@ class LibraryMixViewModel
                     emit(MostPlayedAlbumUiState.Error(context.getString(R.string.error_unknown)))
                 }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MostPlayedAlbumUiState.Loading)
 
-        // Pixel Notes: AI "Top mixes for you" removed; nothing is generated automatically.
-
         fun syncAllLibrary() {
             refreshLibrary(LibrarySyncTarget.All)
         }
-
-        fun refreshTopMixes() {
-            hasRequestedInitialTopMixGeneration = true
-            refreshTopMixesInternal(isInitialGeneration = false)
-        }
-
-        private fun refreshTopMixesInternal(isInitialGeneration: Boolean) {
-            if (_isTopMixRefreshing.value) return
-            viewModelScope.launch(Dispatchers.IO) {
-                _isTopMixRefreshing.value = true
-                _topMixInitialError.value = null
-                val hasVisibleMixes = observedTopMixes.value.orEmpty().isNotEmpty()
-                try {
-                    when (val result = refreshLibraryTopMixes()) {
-                        RefreshLibraryTopMixesResult.Success -> {
-                            _topMixInitialError.value = null
-                        }
-
-                        is RefreshLibraryTopMixesResult.Failure -> {
-                            result.cause?.let(::reportException)
-                            val message = result.reason.toTopMixMessage(result.cause)
-                            if (!isInitialGeneration && hasVisibleMixes) {
-                                _topMixEvents.emit(message)
-                            } else {
-                                _topMixInitialError.value = message
-                            }
-                        }
-                    }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    reportException(e)
-                    val message = TopMixGenerationFailure.AI_REQUEST_FAILED.toTopMixMessage(e)
-                    if (!isInitialGeneration && hasVisibleMixes) {
-                        _topMixEvents.emit(message)
-                    } else {
-                        _topMixInitialError.value = message
-                    }
-                } finally {
-                    _isTopMixRefreshing.value = false
-                }
-            }
-        }
-
-        private fun TopMixGenerationFailure.toTopMixMessage(cause: Throwable?): String =
-            when (this) {
-                TopMixGenerationFailure.AI_NOT_CONFIGURED -> {
-                    context.getString(R.string.library_top_mixes_ai_not_configured_desc)
-                }
-
-                TopMixGenerationFailure.NO_RECENT_HISTORY -> {
-                    context.getString(R.string.library_top_mixes_no_recent_history)
-                }
-
-                TopMixGenerationFailure.NO_VALID_MIXES -> {
-                    context.getString(R.string.library_top_mixes_no_valid_mixes)
-                }
-
-                TopMixGenerationFailure.AI_REQUEST_FAILED -> {
-                    buildString {
-                        append(context.getString(R.string.library_top_mixes_failed))
-                        cause?.localizedMessage?.takeIf(String::isNotBlank)?.let { message ->
-                            append(": ")
-                            append(message)
-                        }
-                    }
-                }
-            }
 
         val topValue =
             context.dataStore.data
@@ -783,49 +634,6 @@ class LibraryMixViewModel
             }
         }
     }
-
-@Immutable
-sealed interface LibraryTopMixesUiState {
-    data object Loading : LibraryTopMixesUiState
-
-    @Immutable
-    data class Success(
-        val mixes: ImmutableList<LibraryTopMixUiModel>,
-        val isRefreshing: Boolean,
-    ) : LibraryTopMixesUiState
-
-    @Immutable
-    data class Empty(
-        val reason: LibraryTopMixEmptyReason,
-        val isRefreshing: Boolean,
-    ) : LibraryTopMixesUiState
-
-    @Immutable
-    data class Error(
-        val message: String,
-    ) : LibraryTopMixesUiState
-}
-
-enum class LibraryTopMixEmptyReason {
-    AI_NOT_CONFIGURED,
-    NO_RECENT_HISTORY,
-}
-
-@Immutable
-data class LibraryTopMixUiModel(
-    val id: String,
-    val title: String,
-    val description: String,
-    val tracks: ImmutableList<MediaMetadata>,
-)
-
-private fun LibraryTopMix.toUiModel() =
-    LibraryTopMixUiModel(
-        id = id,
-        title = title,
-        description = description,
-        tracks = ImmutableList.copyOf(tracks),
-    )
 
 @Immutable
 sealed interface MostPlayedAlbumUiState {

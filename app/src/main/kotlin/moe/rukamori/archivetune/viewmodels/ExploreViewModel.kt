@@ -16,8 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import moe.rukamori.archivetune.aicontentfilter.FilterAiContentUseCase
-import moe.rukamori.archivetune.aicontentfilter.LoadAiContentFilterPolicyUseCase
 import moe.rukamori.archivetune.constants.HideExplicitKey
 import moe.rukamori.archivetune.constants.HideVideoKey
 import moe.rukamori.archivetune.db.MusicDatabase
@@ -37,8 +35,6 @@ class ExploreViewModel
     constructor(
         @ApplicationContext val context: Context,
         val database: MusicDatabase,
-        private val loadAiContentFilterPolicy: LoadAiContentFilterPolicyUseCase,
-        private val filterAiContent: FilterAiContentUseCase,
     ) : ViewModel() {
         val explorePage = MutableStateFlow<ExplorePage?>(null)
 
@@ -47,7 +43,6 @@ class ExploreViewModel
                 .explore()
                 .onSuccess { page ->
                     val blockedArtistIds = database.getBlockedArtistIds().toSet()
-                    val aiContentFilterPolicy = loadAiContentFilterPolicy()
                     val artists: MutableMap<Int, String> = mutableMapOf()
                     val favouriteArtists: MutableMap<Int, String> = mutableMapOf()
                     database.allArtistsByPlayTime().first().let { list ->
@@ -63,25 +58,22 @@ class ExploreViewModel
                     explorePage.value =
                         page.copy(
                             newReleaseAlbums =
-                                filterAiContent(
-                                    page.newReleaseAlbums
-                                        .sortedBy { album ->
-                                            val artistIds = album.artists.orEmpty().mapNotNull { it.id }
-                                            val firstArtistKey =
-                                                artistIds.firstNotNullOfOrNull { artistId ->
-                                                    if (artistId in favouriteArtists.values) {
-                                                        favouriteArtists.entries.firstOrNull { it.value == artistId }?.key
-                                                    } else {
-                                                        artists.entries.firstOrNull { it.value == artistId }?.key
-                                                    }
-                                                } ?: Int.MAX_VALUE
-                                            firstArtistKey
-                                        }.filterExplicit(
-                                            context.dataStore.get(HideExplicitKey, false),
-                                        ).filterVideo(context.dataStore.get(HideVideoKey, false))
-                                        .filterBlockedArtists(blockedArtistIds),
-                                    aiContentFilterPolicy,
-                                ),
+                                page.newReleaseAlbums
+                                    .sortedBy { album ->
+                                        val artistIds = album.artists.orEmpty().mapNotNull { it.id }
+                                        val firstArtistKey =
+                                            artistIds.firstNotNullOfOrNull { artistId ->
+                                                if (artistId in favouriteArtists.values) {
+                                                    favouriteArtists.entries.firstOrNull { it.value == artistId }?.key
+                                                } else {
+                                                    artists.entries.firstOrNull { it.value == artistId }?.key
+                                                }
+                                            } ?: Int.MAX_VALUE
+                                        firstArtistKey
+                                    }.filterExplicit(
+                                        context.dataStore.get(HideExplicitKey, false),
+                                    ).filterVideo(context.dataStore.get(HideVideoKey, false))
+                                    .filterBlockedArtists(blockedArtistIds),
                         )
                 }.onFailure {
                     reportException(it)

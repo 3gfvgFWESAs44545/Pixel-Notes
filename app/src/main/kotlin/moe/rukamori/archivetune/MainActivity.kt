@@ -238,8 +238,6 @@ import moe.rukamori.archivetune.constants.SYSTEM_DEFAULT
 import moe.rukamori.archivetune.constants.SearchSource
 import moe.rukamori.archivetune.constants.SearchSourceKey
 import moe.rukamori.archivetune.constants.StopMusicOnTaskClearKey
-import moe.rukamori.archivetune.constants.UpdateChannel
-import moe.rukamori.archivetune.constants.UpdateChannelKey
 import moe.rukamori.archivetune.constants.UseSystemFontKey
 import moe.rukamori.archivetune.db.MusicDatabase
 import moe.rukamori.archivetune.db.entities.Album
@@ -279,7 +277,6 @@ import moe.rukamori.archivetune.ui.component.FloatingNavigationToolbar
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.component.LocalBottomSheetPageState
 import moe.rukamori.archivetune.ui.component.LocalMenuState
-import moe.rukamori.archivetune.ui.component.MarkdownText
 import moe.rukamori.archivetune.ui.component.NetworkStatusBanner
 import moe.rukamori.archivetune.ui.component.StarDialog
 import moe.rukamori.archivetune.ui.component.TopSearch
@@ -313,10 +310,8 @@ import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
 import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.ui.utils.resetHeightOffset
-import moe.rukamori.archivetune.updates.ObserveUpdateSettingsUseCase
 import moe.rukamori.archivetune.utils.PreferenceStore
 import moe.rukamori.archivetune.utils.SyncUtils
-import moe.rukamori.archivetune.utils.Updater
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.utils.get
 import moe.rukamori.archivetune.utils.isLowRamDevice
@@ -326,7 +321,6 @@ import moe.rukamori.archivetune.utils.reportException
 import moe.rukamori.archivetune.utils.setAppLocale
 import moe.rukamori.archivetune.viewmodels.BackupCategory
 import moe.rukamori.archivetune.viewmodels.BackupRestoreViewModel
-import moe.rukamori.archivetune.viewmodels.GatekeeperViewModel
 import moe.rukamori.archivetune.viewmodels.HomeViewModel
 import moe.rukamori.archivetune.viewmodels.MainMenuViewModel
 import moe.rukamori.archivetune.viewmodels.NetworkBannerViewModel
@@ -349,9 +343,6 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var syncUtils: SyncUtils
 
-    @Inject
-    lateinit var observeUpdateSettings: ObserveUpdateSettingsUseCase
-
     private lateinit var navController: NavHostController
     private var pendingIntent: Intent? = null
     private var pendingDeepLinkQueue: Queue? = null
@@ -362,8 +353,6 @@ class MainActivity : ComponentActivity() {
     private var aodModeLaunchRequestCount by mutableIntStateOf(0)
     private var isAodScreenOffReceiverRegistered = false
     private var pendingBackupRestoreUri by mutableStateOf<Uri?>(null)
-    private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
-    private var latestUpdateChannel by mutableStateOf(defaultUpdateChannel)
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
     private var isMusicServiceBound = false
@@ -614,20 +603,6 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            val gatekeeperViewModel: GatekeeperViewModel = hiltViewModel()
-            LaunchedEffect(Unit) {
-                gatekeeperViewModel.blockedMessages.collect { message ->
-                    Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
-                }
-            }
-
-            val updateChannel by rememberEnumPreference(UpdateChannelKey, defaultValue = defaultUpdateChannel)
-            val updateSettingsFlow = remember(observeUpdateSettings) { observeUpdateSettings() }
-            val updateSettings by
-                updateSettingsFlow.collectAsStateWithLifecycle(
-                    initialValue = null,
-                )
-
             LaunchedEffect(Unit) {
                 while (playerConnection == null) {
                     delay(100)
@@ -672,30 +647,6 @@ class MainActivity : ComponentActivity() {
 
             }
 
-            LaunchedEffect(
-                updateSettings?.automaticChecksEnabled,
-                updateSettings?.notificationsEnabled,
-                updateChannel,
-            ) {
-                val currentUpdateSettings = updateSettings ?: return@LaunchedEffect
-                if (
-                    currentUpdateSettings.automaticChecksEnabled &&
-                    BuildConfig.UPDATER_AVAILABLE &&
-                    updateChannel != UpdateChannel.ARTIFACT &&
-                    System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds
-                ) {
-                    Updater.getLatestVersionName().onSuccess { latestVersion ->
-                        if (Updater.isUpdateAvailable(latestVersion, BuildConfig.VERSION_NAME)) {
-                            latestUpdateChannel = UpdateChannel.STABLE
-                            latestVersionName = latestVersion
-                        }
-                    }
-                }
-
-                moe.rukamori.archivetune.utils.UpdateNotificationManager
-                    .checkForUpdates(this@MainActivity)
-            }
-
             // Use remembered instances so the same state object is used everywhere
             // (previously retrieving the composition local directly created different
             // instances in different composition scopes which caused the update
@@ -710,96 +661,6 @@ class MainActivity : ComponentActivity() {
                     moe.rukamori.archivetune.ui.component
                         .MenuState()
                 }
-            val releaseNotesState = remember { mutableStateOf<String?>(null) }
-            val updateSheetContent: @Composable ColumnScope.() -> Unit = {
-                // receiver: ColumnScope
-                Text(
-                    text = stringResource(R.string.new_update_available),
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                androidx.compose.material3.OutlinedButton(
-                    onClick = {},
-                    contentPadding =
-                        androidx.compose.foundation.layout.PaddingValues(
-                            horizontal = 5.dp,
-                            vertical = 5.dp,
-                        ),
-                    shapes = ButtonDefaults.shapes(),
-                ) {
-                    Text(text = latestVersionName, style = MaterialTheme.typography.labelLarge)
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f, fill = false)
-                            .verticalScroll(rememberScrollState()),
-                ) {
-                    val notes = releaseNotesState.value
-                    if (notes != null && notes.isNotBlank()) {
-                        MarkdownText(
-                            markdown = notes,
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(end = 8.dp),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.release_notes_unavailable),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                androidx.compose.material3.Button(
-                    onClick = {
-                        bottomSheetPageState.dismiss()
-                        this@MainActivity.navController.navigate("settings/update") {
-                            launchSingleTop = true
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shapes = ButtonDefaults.shapes(),
-                ) {
-                    Text(text = stringResource(R.string.update_text))
-                }
-            }
-
-            // fetch release notes and show sheet when a new version is detected
-            LaunchedEffect(latestVersionName, latestUpdateChannel, updateChannel) {
-                if (
-                    BuildConfig.UPDATER_AVAILABLE &&
-                    latestUpdateChannel == updateChannel &&
-                    latestUpdateChannel != UpdateChannel.ARTIFACT &&
-                    Updater.isUpdateAvailable(latestVersionName, BuildConfig.VERSION_NAME)
-                ) {
-                    val releaseNotesResult =
-                        when (latestUpdateChannel) {
-                            UpdateChannel.STABLE -> Updater.getLatestReleaseNotes()
-                            else -> return@LaunchedEffect
-                        }
-                    releaseNotesResult
-                        .onSuccess {
-                            releaseNotesState.value = it
-                        }.onFailure {
-                            releaseNotesState.value = null
-                        }
-
-                    bottomSheetPageState.show(updateSheetContent)
-                }
-            }
 
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val customThemeColorValue by rememberPreference(CustomThemeColorKey, defaultValue = "default")
@@ -1928,11 +1789,6 @@ class MainActivity : ComponentActivity() {
                                                         }
                                                     },
                                                     actions = {
-                                                        val hasUpdateAvailable =
-                                                            BuildConfig.UPDATER_AVAILABLE &&
-                                                                latestUpdateChannel == updateChannel &&
-                                                                latestUpdateChannel != UpdateChannel.ARTIFACT &&
-                                                                Updater.isUpdateAvailable(latestVersionName, BuildConfig.VERSION_NAME)
                                                         // Pixel Notes: a settings cog instead of the overflow menu.
                                                         TranslucentTopAppBarIconButton(
                                                             onClick = {
@@ -2546,9 +2402,7 @@ class MainActivity : ComponentActivity() {
                                             navController,
                                             topAppBarScrollBehavior,
                                             homeViewModel,
-                                            { latestVersionName },
                                             disableAnimations,
-                                            onClearUpdateBadge = { latestVersionName = BuildConfig.VERSION_NAME },
                                             homeScrollConnection = homeScrollBehavior.nestedScrollConnection,
                                             searchScrollConnection = searchScrollBehavior.nestedScrollConnection,
                                             libraryScrollBehavior = libraryScrollBehavior,

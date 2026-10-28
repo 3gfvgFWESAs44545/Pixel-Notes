@@ -119,7 +119,6 @@ class InnerTube {
 
             engine {
                 config {
-                    addInterceptor(NetworkGatekeeper)
                     proxy(Proxy.NO_PROXY)
                 }
             }

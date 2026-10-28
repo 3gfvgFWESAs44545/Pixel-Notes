@@ -18,8 +18,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import moe.rukamori.archivetune.aicontentfilter.FilterAiContentUseCase
-import moe.rukamori.archivetune.aicontentfilter.LoadAiContentFilterPolicyUseCase
 import moe.rukamori.archivetune.constants.HideExplicitKey
 import moe.rukamori.archivetune.constants.HideVideoKey
 import moe.rukamori.archivetune.db.MusicDatabase
@@ -39,8 +37,6 @@ class OnlineSearchSuggestionViewModel
     constructor(
         @ApplicationContext val context: Context,
         private val database: MusicDatabase,
-        private val loadAiContentFilterPolicy: LoadAiContentFilterPolicyUseCase,
-        private val filterAiContent: FilterAiContentUseCase,
     ) : ViewModel() {
         private val query = MutableStateFlow("")
         private val _viewState = MutableStateFlow(SearchSuggestionViewState())
@@ -58,7 +54,6 @@ class OnlineSearchSuggestionViewModel
                             }
                         } else {
                             val result = YouTube.searchSuggestions(query).getOrNull()
-                            val aiContentFilterPolicy = loadAiContentFilterPolicy()
                             database
                                 .searchHistory(query)
                                 .map { it.take(3) }
@@ -72,18 +67,15 @@ class OnlineSearchSuggestionViewModel
                                                     history.none { it.query == query }
                                                 }.orEmpty(),
                                         items =
-                                            filterAiContent(
-                                                result
-                                                    ?.recommendedItems
-                                                    ?.filterExplicit(
-                                                        context.dataStore.get(
-                                                            HideExplicitKey,
-                                                            false,
-                                                        ),
-                                                    )?.filterVideo(context.dataStore.get(HideVideoKey, false))
-                                                    .orEmpty(),
-                                                aiContentFilterPolicy,
-                                            ),
+                                            result
+                                                ?.recommendedItems
+                                                ?.filterExplicit(
+                                                    context.dataStore.get(
+                                                        HideExplicitKey,
+                                                        false,
+                                                    ),
+                                                )?.filterVideo(context.dataStore.get(HideVideoKey, false))
+                                                .orEmpty(),
                                     )
                                 }
                         }

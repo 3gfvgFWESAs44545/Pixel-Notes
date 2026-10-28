@@ -25,7 +25,6 @@ import moe.rukamori.archivetune.R
 fun buildSettingsGroups(
     navController: NavController,
     isAndroid12OrLater: Boolean,
-    hasUpdate: Boolean,
     context: Context,
 ): List<SettingsGroup> {
     val account =

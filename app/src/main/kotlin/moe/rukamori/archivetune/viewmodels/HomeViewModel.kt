@@ -26,9 +26,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.supervisorScope
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.aicontentfilter.FilterAiContentUseCase
-import moe.rukamori.archivetune.aicontentfilter.LoadAiContentFilterPolicyUseCase
-import moe.rukamori.archivetune.aicontentfilter.ObserveAiContentFilterUseCase
 import moe.rukamori.archivetune.auth.SwitchSavedYouTubeAccountUseCase
 import moe.rukamori.archivetune.constants.AccountChannelHandleKey
 import moe.rukamori.archivetune.constants.AccountEmailKey
@@ -214,9 +211,6 @@ class HomeViewModel
         private val syncUtils: SyncUtils,
         private val switchSavedYouTubeAccount: SwitchSavedYouTubeAccountUseCase,
         observeHomePresentationPreferences: ObserveHomePresentationPreferencesUseCase,
-        observeAiContentFilter: ObserveAiContentFilterUseCase,
-        private val loadAiContentFilterPolicy: LoadAiContentFilterPolicyUseCase,
-        private val filterAiContent: FilterAiContentUseCase,
         private val loadPersonalizedQuickPicksUseCase: LoadPersonalizedQuickPicksUseCase,
         private val prepareCommunityHomePageUseCase: PrepareCommunityHomePageUseCase,
         private val loadCommunityPlaylistPreviewsUseCase: LoadCommunityPlaylistPreviewsUseCase,
@@ -266,10 +260,6 @@ class HomeViewModel
         val accountChannelsState: StateFlow<AccountChannelsState> = _accountChannelsState.asStateFlow()
 
         private val presentationPreferences = observeHomePresentationPreferences()
-        private val aiContentFilterSettings =
-            observeAiContentFilter()
-                .map { (settings, _) -> settings }
-                .distinctUntilChanged()
 
         /** Pixel Notes "Jump back in": most recently played albums, newest first, one card each. */
         private val jumpBackIn =
@@ -532,13 +522,10 @@ class HomeViewModel
             val hideVideo = context.dataStore.get(HideVideoKey, false)
             val blockedArtistIds = database.getBlockedArtistIds().toSet()
             val filteredItems =
-                filterAiContent(
-                    section.items
-                        .filterExplicit(hideExplicit)
-                        .filterVideo(hideVideo)
-                        .filterBlockedArtists(blockedArtistIds),
-                    loadAiContentFilterPolicy(),
-                )
+                section.items
+                    .filterExplicit(hideExplicit)
+                    .filterVideo(hideVideo)
+                    .filterBlockedArtists(blockedArtistIds)
             val visibleSongIds = filteredItems.filterIsInstance<SongItem>().mapTo(mutableSetOf(), SongItem::id)
             return section.copy(
                 items = filteredItems,
@@ -753,7 +740,6 @@ class HomeViewModel
             loadError.value = null
 
             try {
-                val aiContentFilterPolicy = loadAiContentFilterPolicy()
                 supervisorScope {
                     val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                     val hideVideo = context.dataStore.get(HideVideoKey, false)
@@ -821,13 +807,10 @@ class HomeViewModel
                                     page.sections.map { section ->
                                         section.copy(
                                             items =
-                                                filterAiContent(
-                                                    section.items
-                                                        .filterExplicit(hideExplicit)
-                                                        .filterVideo(hideVideo)
-                                                        .filterBlockedArtists(blockedArtistIds),
-                                                    aiContentFilterPolicy,
-                                                ),
+                                                section.items
+                                                    .filterExplicit(hideExplicit)
+                                                    .filterVideo(hideVideo)
+                                                    .filterBlockedArtists(blockedArtistIds),
                                         )
                                     }.filter(HomePage.Section::hasVisibleContent),
                             )
@@ -870,7 +853,6 @@ class HomeViewModel
             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
             val hideVideo = context.dataStore.get(HideVideoKey, false)
             val blockedArtistIds = database.getBlockedArtistIds().toSet()
-            val aiContentFilterPolicy = loadAiContentFilterPolicy()
             val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
 
             val artistRecommendations =
@@ -897,13 +879,10 @@ class HomeViewModel
                         SimilarRecommendation(
                             title = it,
                             items =
-                                filterAiContent(
-                                    items
-                                        .filterExplicit(hideExplicit)
-                                        .filterVideo(hideVideo)
-                                        .filterBlockedArtists(blockedArtistIds),
-                                    aiContentFilterPolicy,
-                                ).shuffled()
+                                items
+                                    .filterExplicit(hideExplicit)
+                                    .filterVideo(hideVideo)
+                                    .filterBlockedArtists(blockedArtistIds).shuffled()
                                     .ifEmpty { return@mapNotNull null },
                         )
                     }
@@ -923,17 +902,14 @@ class HomeViewModel
                         SimilarRecommendation(
                             title = song,
                             items =
-                                filterAiContent(
-                                    (
-                                        page.songs.shuffled().take(8) +
-                                            page.albums.shuffled().take(4) +
-                                            page.artists.shuffled().take(4) +
-                                            page.playlists.shuffled().take(4)
-                                    ).filterExplicit(hideExplicit)
-                                        .filterVideo(hideVideo)
-                                        .filterBlockedArtists(blockedArtistIds),
-                                    aiContentFilterPolicy,
-                                ).shuffled()
+                                (
+                                    page.songs.shuffled().take(8) +
+                                        page.albums.shuffled().take(4) +
+                                        page.artists.shuffled().take(4) +
+                                        page.playlists.shuffled().take(4)
+                                ).filterExplicit(hideExplicit)
+                                    .filterVideo(hideVideo)
+                                    .filterBlockedArtists(blockedArtistIds).shuffled()
                                     .ifEmpty { return@mapNotNull null },
                         )
                     }
@@ -1063,7 +1039,6 @@ class HomeViewModel
                 isLoadingMore.value = true
                 try {
                     val blockedArtistIds = database.getBlockedArtistIds().toSet()
-                    val aiContentFilterPolicy = loadAiContentFilterPolicy()
                     val nextSections = YouTube.home(continuation).getOrNull() ?: return@launch
                     val mergedSections = homePage.value?.sections.orEmpty() + nextSections.sections
                     val mergedPage =
@@ -1073,13 +1048,10 @@ class HomeViewModel
                                 mergedSections.map { section ->
                                     section.copy(
                                         items =
-                                            filterAiContent(
-                                                section.items
-                                                    .filterExplicit(hideExplicit)
-                                                    .filterVideo(hideVideo)
-                                                    .filterBlockedArtists(blockedArtistIds),
-                                                aiContentFilterPolicy,
-                                            ),
+                                            section.items
+                                                .filterExplicit(hideExplicit)
+                                                .filterVideo(hideVideo)
+                                                .filterBlockedArtists(blockedArtistIds),
                                     )
                                 }.filter(HomePage.Section::hasVisibleContent),
                         )
@@ -1120,7 +1092,6 @@ class HomeViewModel
                     val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                     val hideVideo = context.dataStore.get(HideVideoKey, false)
                     val blockedArtistIds = database.getBlockedArtistIds().toSet()
-                    val aiContentFilterPolicy = loadAiContentFilterPolicy()
                     val nextSections =
                         YouTube.home(params = chip?.endpoint?.params).getOrElse { throwable ->
                             if (throwable is CancellationException) throw throwable
@@ -1134,13 +1105,10 @@ class HomeViewModel
                                 nextSections.sections.map { section ->
                                     section.copy(
                                         items =
-                                            filterAiContent(
-                                                section.items
-                                                    .filterExplicit(hideExplicit)
-                                                    .filterVideo(hideVideo)
-                                                    .filterBlockedArtists(blockedArtistIds),
-                                                aiContentFilterPolicy,
-                                            ),
+                                            section.items
+                                                .filterExplicit(hideExplicit)
+                                                .filterVideo(hideVideo)
+                                                .filterBlockedArtists(blockedArtistIds),
                                     )
                                 }.filter(HomePage.Section::hasVisibleContent),
                         )
@@ -1272,15 +1240,6 @@ class HomeViewModel
 
             viewModelScope.launch(Dispatchers.IO) {
                 load()
-            }
-
-            viewModelScope.launch(Dispatchers.IO) {
-                aiContentFilterSettings
-                    .drop(1)
-                    .collectLatest {
-                        isLoading.filter { loading -> !loading }.first()
-                        load()
-                    }
             }
 
             viewModelScope.launch(Dispatchers.IO) {

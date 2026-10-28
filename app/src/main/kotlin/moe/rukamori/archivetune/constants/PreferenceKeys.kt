@@ -199,9 +199,6 @@ val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
 val HideVideoKey = booleanPreferencesKey("hideVideo")
-val AiContentFilterEnabledKey = booleanPreferencesKey("aiContentFilterEnabled")
-val AiContentFilterIncludeModerateKey = booleanPreferencesKey("aiContentFilterIncludeModerate")
-val AiContentFilterLastUpdatedKey = longPreferencesKey("aiContentFilterLastUpdated")
 val YtmSyncKey = booleanPreferencesKey("ytmSync")
 val ForceSyncOnAccountSwitchKey = booleanPreferencesKey("forceSyncOnAccountSwitch")
 val SelectedYtmPlaylistsKey = stringPreferencesKey("ytm_selected_playlists")
@@ -214,28 +211,6 @@ val LocalSongsSortDescendingKey = booleanPreferencesKey("local_songs_sort_descen
 
 
 
-val AiProviderKey = stringPreferencesKey("ai_provider")
-val AiCustomEndpointKey = stringPreferencesKey("ai_custom_endpoint")
-val AiApiKeyKey = stringPreferencesKey("ai_api_key")
-val AiApiValidationStatusKey = stringPreferencesKey("ai_api_validation_status")
-val AiSelectedModelKey = stringPreferencesKey("ai_selected_model")
-val AiCustomModelKey = stringPreferencesKey("ai_custom_model")
-val AiCustomPromptKey = stringPreferencesKey("ai_custom_prompt")
-val AiRequestParametersKey = stringPreferencesKey("ai_request_parameters")
-
-enum class AiProvider {
-    CHATGPT,
-    GEMINI,
-    OPENROUTER,
-    CUSTOM,
-    NONE,
-}
-
-enum class AiApiValidationStatus {
-    UNKNOWN,
-    SUCCESS,
-    FAILED,
-}
 
 // Last.fm scrobbling
 val LastFMSessionKey = stringPreferencesKey("lastfmSession")
@@ -633,9 +608,6 @@ val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
 
 val PlayerVolumeKey = floatPreferencesKey("playerVolume")
 val RepeatModeKey = intPreferencesKey("repeatMode")
-val SponsorBlockEnabledKey = booleanPreferencesKey("sponsorBlockEnabled")
-val SponsorBlockCategoriesKey = stringSetPreferencesKey("sponsorBlockCategories")
-val SponsorBlockApiUrlKey = stringPreferencesKey("sponsorBlockApiUrl")
 
 val SearchSourceKey = stringPreferencesKey("searchSource")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
@@ -767,12 +739,6 @@ val OnboardingCompletedKey = booleanPreferencesKey("onboarding_completed")
 val HasPressedStarKey = booleanPreferencesKey("has_pressed_star")
 val RemindAfterKey = intPreferencesKey("remind_after")
 
-// Update settings
-val AutomaticUpdateCheckKey = booleanPreferencesKey("automaticUpdateCheck")
-val EnableUpdateNotificationKey = booleanPreferencesKey("enableUpdateNotification")
-val UpdateChannelKey = stringPreferencesKey("updateChannel")
-val LastUpdateCheckKey = longPreferencesKey("lastUpdateCheck")
-val LastNotifiedVersionKey = stringPreferencesKey("lastNotifiedVersion")
 
 val GitHubContributorsEtagKey = stringPreferencesKey("github_contributors_etag")
 val GitHubContributorsJsonKey = stringPreferencesKey("github_contributors_json")
@@ -780,35 +746,10 @@ val GitHubContributorsLastCheckedAtKey = longPreferencesKey("github_contributors
 val GitHubTranslationContributorsJsonKey = stringPreferencesKey("github_translation_contributors_json")
 val GitHubTranslationContributorsLastCheckedAtKey = longPreferencesKey("github_translation_contributors_last_checked_at")
 
-val GitHubReleasesEtagKey = stringPreferencesKey("github_releases_etag")
-val GitHubReleasesJsonKey = stringPreferencesKey("github_releases_json")
-val GitHubReleasesLastCheckedAtKey = longPreferencesKey("github_releases_last_checked_at")
-val GitHubReleasesFingerprintKey = stringPreferencesKey("github_releases_fingerprint")
 
-val CanaryReleasesEtagKey = stringPreferencesKey("daily_nightly_releases_etag")
-val CanaryReleasesJsonKey = stringPreferencesKey("daily_nightly_releases_json")
-val CanaryReleasesLastCheckedAtKey = longPreferencesKey("daily_nightly_releases_last_checked_at")
-val CanaryReleasesFingerprintKey = stringPreferencesKey("daily_nightly_releases_fingerprint")
 
 
 val RedownloadOnRestoreKey = booleanPreferencesKey("redownloadOnRestore")
-
-enum class UpdateChannel {
-    STABLE,
-    ARTIFACT,
-    ;
-
-    companion object {
-        fun fromStoredName(
-            value: String?,
-            defaultValue: UpdateChannel,
-        ): UpdateChannel =
-            when (value) {
-                "NIGHTLY", "DAILY_NIGHTLY", "CANARY" -> ARTIFACT
-                else -> entries.firstOrNull { it.name == value } ?: defaultValue
-            }
-    }
-}
 
 // Pixel Notes: optional khinsider account
 val KhinsiderCookieKey = stringPreferencesKey("khinsiderCookie")

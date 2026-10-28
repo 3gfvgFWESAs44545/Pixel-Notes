@@ -54,14 +54,11 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
-import moe.rukamori.archivetune.utils.Updater
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    latestVersionName: String,
-    onClearUpdateBadge: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
@@ -106,11 +103,7 @@ fun SettingsScreen(
 
     val scrollBehavior = appBarScrollBehavior()
     val shouldShowPermissionHint = !isStorageGranted || !isNotificationGranted
-    val hasUpdate =
-        BuildConfig.UPDATER_AVAILABLE &&
-            Updater.isUpdateAvailable(latestVersionName, BuildConfig.VERSION_NAME)
-    var isUpdateDismissed by remember { mutableStateOf(false) }
-    val settingsGroups = buildSettingsGroups(navController, isAndroid12OrLater, hasUpdate, context)
+    val settingsGroups = buildSettingsGroups(navController, isAndroid12OrLater, context)
 
     Scaffold(
         modifier =
@@ -163,19 +156,6 @@ fun SettingsScreen(
                     bottom = SettingsDimensions.ScreenBottomPadding,
                 ),
         ) {
-            if (hasUpdate && !isUpdateDismissed) {
-                item(key = "update", contentType = "settings_banner") {
-                    SettingsUpdateBanner(
-                        latestVersion = latestVersionName,
-                        onClick = { navController.navigate("settings/update") },
-                        onDismiss = { isUpdateDismissed = true },
-                        modifier =
-                            Modifier
-                                .padding(horizontal = SettingsDimensions.ScreenHorizontalPadding)
-                                .padding(bottom = SettingsDimensions.SectionSpacing),
-                    )
-                }
-            }
 
             if (shouldShowPermissionHint) {
                 item(key = "permission", contentType = "settings_banner") {

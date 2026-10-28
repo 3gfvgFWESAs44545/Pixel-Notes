@@ -25,19 +25,6 @@ fun String.asBuildConfigString(): String =
             .replace("\t", "\\t")
     }\""
 
-val fallbackDataServerUrl = ""
-val dataServerUrl =
-    rootProject
-        .file("DataServer.txt")
-        .takeIf { it.isFile }
-        ?.readText()
-        ?.trim()
-        ?.takeIf { it.startsWith("https://") || it.startsWith("http://") }
-        ?: fallbackDataServerUrl
-val apiBearerToken = System.getenv("API_BEARER_TOKEN")?.trim()
-    ?: localProperties.getProperty("API_BEARER_TOKEN")?.trim()
-    ?: ""
-
 val releaseKeystoreFile = file("keystore/release.keystore")
 val releaseStorePassword =
     System.getenv("STORE_PASSWORD")?.takeIf { it.isNotBlank() }
@@ -70,9 +57,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
-        buildConfigField("String", "DATA_SERVER_URL", dataServerUrl.asBuildConfigString())
-        buildConfigField("String", "API_BEARER_TOKEN", apiBearerToken.asBuildConfigString())
-        buildConfigField("boolean", "GATEKEEPER_ENABLED", "false")
         buildConfigField("boolean", "LEAK_CANARY_TOGGLE_AVAILABLE", "false")
 
         val nightlyBuildHash =
@@ -89,7 +73,6 @@ android {
             versionName = nightlyVersionName
         }
         buildConfigField("String", "DISTRIBUTION", "\"gms\"")
-        buildConfigField("boolean", "UPDATER_AVAILABLE", "false")
 
         val githubOwner =
             System.getenv("GITHUB_OWNER")?.trim()
@@ -121,12 +104,10 @@ android {
             dimension = "distribution"
             isDefault = true
             buildConfigField("String", "DISTRIBUTION", "\"gms\"")
-            buildConfigField("boolean", "UPDATER_AVAILABLE", "false")
         }
         create("foss") {
             dimension = "distribution"
             buildConfigField("String", "DISTRIBUTION", "\"foss\"")
-            buildConfigField("boolean", "UPDATER_AVAILABLE", "false")
         }
         create("mobile") {
             dimension = "device"
@@ -194,7 +175,6 @@ android {
             )
         }
         debug {
-            buildConfigField("boolean", "GATEKEEPER_ENABLED", "false")
             applicationIdSuffix = ".debug"
             isDebuggable = true
         }

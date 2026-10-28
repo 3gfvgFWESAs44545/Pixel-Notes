@@ -45,8 +45,6 @@ import moe.rukamori.archivetune.canvas.StartCanvasPolicyUseCase
 import moe.rukamori.archivetune.constants.*
 import moe.rukamori.archivetune.downloads.DownloadedArtworkRepository
 import moe.rukamori.archivetune.extensions.*
-import moe.rukamori.archivetune.gatekeeper.GatekeeperResult
-import moe.rukamori.archivetune.gatekeeper.RunGatekeeperCheckUseCase
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.innertube.models.YouTubeLocale
 import moe.rukamori.archivetune.playback.stream.YoutubeiStreamRepository
@@ -79,9 +77,6 @@ import kotlin.system.exitProcess
 class App :
     Application(),
     SingletonImageLoader.Factory {
-    @Inject
-    lateinit var runGatekeeperCheckUseCase: RunGatekeeperCheckUseCase
-
     @Inject
     lateinit var downloadedArtworkRepository: DownloadedArtworkRepository
 
@@ -137,7 +132,6 @@ class App :
         } catch (_: Exception) {
         }
 
-        initializeGatekeeper()
         initializeCriticalSync()
         initializeDeferredAsync()
         initializeLauncherEntry()
@@ -153,20 +147,6 @@ class App :
             } catch (error: Exception) {
                 Timber.e(error, "Unable to restore launcher entry")
                 reportException(error)
-            }
-        }
-    }
-
-    private fun initializeGatekeeper() {
-        applicationScope.launch(Dispatchers.IO) {
-            while (isActive) {
-                val result = runGatekeeperCheckUseCase()
-                when (result) {
-                    GatekeeperResult.Allowed -> return@launch
-                    GatekeeperResult.Unavailable -> Unit
-                    is GatekeeperResult.Blocked -> if (!result.retryable) return@launch
-                }
-                delay(GATEKEEPER_RETRY_INTERVAL_MILLIS)
             }
         }
     }
@@ -231,7 +211,7 @@ class App :
             }
         }
 
-        // Pixel Notes: proxy, DNS over HTTPS, ListenBrainz and Listen Together were removed. Clear any values
+        // Pixel Notes: proxy, DNS over HTTPS, ListenBrainz, Listen Together, AI and SponsorBlock were removed. Clear any values
         // saved by older versions so passwords and tokens don't linger on the phone.
         applicationScope.launch(Dispatchers.IO) {
             runCatching {
@@ -240,10 +220,21 @@ class App :
                         "proxyEnabled", "proxyType", "proxyHost", "proxyPort", "proxyUsername", "proxyPassword",
                         "streamBypassProxy", "enableDnsOverHttps", "dnsOverHttpsProvider", "customDnsUrl",
                         "listenbrainz_enabled", "listenbrainz_token",
+                        "automaticUpdateCheck", "enableUpdateNotification", "updateChannel", "lastUpdateCheck",
+                        "lastNotifiedVersion", "github_releases_etag", "github_releases_json",
+                        "github_releases_last_checked_at", "github_releases_fingerprint",
+                        "daily_nightly_releases_etag", "daily_nightly_releases_json",
+                        "daily_nightly_releases_last_checked_at", "daily_nightly_releases_fingerprint",
                     )
                 dataStore.edit { prefs ->
-                    prefs.asMap().keys.filter { it.name in removedKeys || it.name.startsWith("together_") }.forEach { prefs.remove(it) }
+                    prefs.asMap().keys.filter { it.name in removedKeys || it.name.startsWith("together_") || it.name.startsWith("ai_") || it.name.startsWith("aiContentFilter") || it.name.startsWith("sponsorBlock") }.forEach { prefs.remove(it) }
                 }
+            }
+            // The old ArchiveTune update checker: stop its background job and remove its notification category.
+            runCatching { androidx.work.WorkManager.getInstance(this@App).cancelUniqueWork("update_check_work") }
+            runCatching {
+                getSystemService(android.app.NotificationManager::class.java)
+                    ?.deleteNotificationChannel("update_notification_channel")
             }
         }
 
@@ -409,7 +400,6 @@ class App :
     }
 
     companion object {
-        private const val GATEKEEPER_RETRY_INTERVAL_MILLIS = 30_000L
 
         lateinit var instance: App
             private set

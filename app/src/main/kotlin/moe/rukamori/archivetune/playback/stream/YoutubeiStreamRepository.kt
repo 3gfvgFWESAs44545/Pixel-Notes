@@ -11,7 +11,6 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import moe.rukamori.archivetune.constants.AudioQuality
-import moe.rukamori.archivetune.innertube.NetworkGatekeeper
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.innertube.utils.hasCompleteYouTubeLoginCookies
 import moe.rukamori.archivetune.morideobfuscator.youtubei.YoutubeiAudioQuality
@@ -44,7 +43,7 @@ class YoutubeiStreamRepository
                     proxyUsername = null,
                     proxyPassword = null,
                     dns = okhttp3.Dns.SYSTEM,
-                    interceptors = listOf(NetworkGatekeeper),
+                    interceptors = emptyList(),
                 )
             }
 
