@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.db.MusicDatabase
 import moe.rukamori.archivetune.extensions.currentMetadata
@@ -41,16 +40,8 @@ import moe.rukamori.archivetune.extensions.getQueueWindows
 import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.playback.MusicService.MusicBinder
 import moe.rukamori.archivetune.playback.queues.Queue
-import moe.rukamori.archivetune.canvas.CanvasPlaybackRequest
 import moe.rukamori.archivetune.utils.isLocalMediaId
 import moe.rukamori.archivetune.utils.reportException
-import java.util.Locale
-
-internal enum class CanvasArtworkRefetchResult {
-    Success,
-    Failure,
-    AlreadyRunning,
-}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerConnection(
@@ -94,14 +85,6 @@ class PlayerConnection(
     private var dismissedPlaybackError: PlaybackException? = null
     val waitingForNetworkConnection = service.waitingForNetworkConnection
     val queueRestoreCompleted = service.queueRestoreCompleted
-
-    internal val canvasNetworkAllowed = service.canvasPlaybackUseCase.policy
-        .map { it.networkAllowed }
-        .stateIn(scope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5_000), false)
-
-    private val canvasArtworkRefetchMutex = Mutex()
-    private val _isCanvasArtworkRefetching = MutableStateFlow(false)
-    internal val isCanvasArtworkRefetching = _isCanvasArtworkRefetching.asStateFlow()
 
     private var metadataExtractionJob: Job? = null
 
@@ -257,39 +240,6 @@ class PlayerConnection(
 
     fun toggleLike() {
         service.toggleLike()
-    }
-
-    internal suspend fun refetchCanvasArtwork(
-        metadata: MediaMetadata,
-        requireVertical: Boolean,
-    ): CanvasArtworkRefetchResult {
-        if (!canvasArtworkRefetchMutex.tryLock()) return CanvasArtworkRefetchResult.AlreadyRunning
-
-        _isCanvasArtworkRefetching.value = true
-        return try {
-            val country = Locale.getDefault().country
-            val storefront = if (country.length == 2) country.lowercase(Locale.ROOT) else "us"
-            val refreshed = service.canvasPlaybackUseCase.refresh(
-                CanvasPlaybackRequest(
-                    mediaId = metadata.id,
-                    title = metadata.title,
-                    artist = metadata.artists.firstOrNull()?.name.orEmpty(),
-                    storefront = storefront,
-                    requireVertical = requireVertical,
-                ),
-            )
-            if (!refreshed) return CanvasArtworkRefetchResult.Failure
-
-            CanvasArtworkRefetchResult.Success
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            timber.log.Timber.tag("CanvasArtwork").w(error, "Canvas refetch failed for %s", metadata.id)
-            CanvasArtworkRefetchResult.Failure
-        } finally {
-            _isCanvasArtworkRefetching.value = false
-            canvasArtworkRefetchMutex.unlock()
-        }
     }
 
     fun dismissPlaybackError() {

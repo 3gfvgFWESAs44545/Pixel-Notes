@@ -634,7 +634,6 @@ private fun StorageCacheClearProgressDialog(cacheClear: StorageCacheClearUiModel
             StorageCacheClearUiKind.SONGS -> stringResource(R.string.storage_clear_song_cache_progress, cacheClear.percent)
             StorageCacheClearUiKind.DOWNLOADS -> stringResource(R.string.storage_clear_downloads_progress, cacheClear.percent)
             StorageCacheClearUiKind.IMAGES -> stringResource(R.string.storage_clear_image_cache_progress, cacheClear.percent)
-            StorageCacheClearUiKind.CANVAS -> stringResource(R.string.storage_clear_canvas_cache_progress, cacheClear.percent)
         }
 
     BasicAlertDialog(

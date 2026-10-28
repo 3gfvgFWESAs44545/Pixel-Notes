@@ -82,9 +82,7 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.component.ListDialog
-import moe.rukamori.archivetune.canvas.CanvasVideo
 import moe.rukamori.archivetune.ui.player.LandscapePlayerControls
-import moe.rukamori.archivetune.ui.player.CanvasArtworkPlayer
 import moe.rukamori.archivetune.ui.player.rememberOfflineArtworkImageRequest
 import moe.rukamori.archivetune.utils.makeTimeString
 
@@ -219,13 +217,9 @@ private fun ImmersivePortrait(
             }
         val contentStart = maxHeight * contentStartFraction + 16.dp
         val stageHeight = maxHeight * 0.64f
-        key(model.mediaId, model.canvas) {
+        key(model.mediaId) {
             ImmersiveBackdrop(
-                mediaId = model.mediaId,
-                canvasFrame = model.canvasFrame,
-                onAction = onAction,
                 artworkUrl = model.artworkUrl,
-                canvas = model.canvas,
                 isPlaying = model.isPlaying,
                 artWidth = maxWidth,
                 artHeight = stageHeight,
@@ -297,13 +291,9 @@ private fun ImmersiveLandscape(
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val artWidth = maxWidth * 0.48f
-        key(model.mediaId, model.canvas) {
+        key(model.mediaId) {
             ImmersiveBackdrop(
-                mediaId = model.mediaId,
-                canvasFrame = model.canvasFrame,
-                onAction = onAction,
                 artworkUrl = model.artworkUrl,
-                canvas = model.canvas,
                 isPlaying = model.isPlaying,
                 artWidth = artWidth,
                 artHeight = maxHeight,
@@ -369,11 +359,7 @@ private fun ImmersiveLandscape(
 
 @Composable
 private fun ImmersiveBackdrop(
-    mediaId: String,
-    canvasFrame: ImageBitmap?,
-    onAction: (ImmersivePlayerAction) -> Unit,
     artworkUrl: String?,
-    canvas: CanvasVideo?,
     isPlaying: Boolean,
     artWidth: Dp,
     artHeight: Dp,
@@ -384,7 +370,6 @@ private fun ImmersiveBackdrop(
     val hazeState = rememberHazeState()
     val artworkRequest = rememberOfflineArtworkImageRequest(artworkUrl)
     val artworkPlaceholder = painterResource(R.drawable.immersive_artwork_placeholder)
-    val canvasArtworkRequest = rememberOfflineArtworkImageRequest(canvas?.static)
     val blurRadius = remember(backdropBlurAmount) { backdropBlurAmount.coerceIn(0, 100).dp }
     val blurStyle =
         remember(disableBlur, blurRadius) {
@@ -441,45 +426,28 @@ private fun ImmersiveBackdrop(
                     .clipToBounds()
                     .hazeSource(hazeState),
         ) {
-            if (canvasFrame != null && canvas != null) {
-                Image(
-                    bitmap = canvasFrame,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = rotatedBackdropModifier,
-                )
-                Image(
-                    bitmap = canvasFrame,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier =
-                        Modifier
-                            .size(width = artWidth, height = artHeight)
-                            .align(Alignment.TopStart),
-                )
-            } else {
-                AsyncImage(
-                    model = artworkRequest,
-                    placeholder = artworkPlaceholder,
-                    error = artworkPlaceholder,
-                    fallback = artworkPlaceholder,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = rotatedBackdropModifier,
-                )
-                AsyncImage(
-                    model = artworkRequest,
-                    placeholder = artworkPlaceholder,
-                    error = artworkPlaceholder,
-                    fallback = artworkPlaceholder,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier =
-                        Modifier
-                            .size(width = artWidth, height = artHeight)
-                            .align(Alignment.TopStart),
-                )
-            }
+            AsyncImage(
+                model = artworkRequest,
+                placeholder = artworkPlaceholder,
+                error = artworkPlaceholder,
+                fallback = artworkPlaceholder,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = rotatedBackdropModifier,
+            )
+            AsyncImage(
+                model = artworkRequest,
+                placeholder = artworkPlaceholder,
+                error = artworkPlaceholder,
+                fallback = artworkPlaceholder,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier =
+                    Modifier
+                        .size(width = artWidth, height = artHeight)
+                        .align(Alignment.TopStart),
+            )
+        
         }
 
         Box(
@@ -510,27 +478,12 @@ private fun ImmersiveBackdrop(
                     },
         ) {
             AsyncImage(
-                model = canvasArtworkRequest ?: artworkRequest,
+                model = artworkRequest,
                 placeholder = artworkPlaceholder,
                 error = artworkPlaceholder,
                 fallback = artworkPlaceholder,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-            CanvasArtworkPlayer(
-                source = canvas?.source,
-                primaryUrl = canvas?.animatedVertical ?: canvas?.animated,
-                fallbackUrl = canvas?.videoUrlVertical ?: canvas?.videoUrl,
-                isPlaying = isPlaying,
-                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
-                onFrameCaptured = remember(mediaId, canvas, onAction) {
-                    { bitmap ->
-                        if (canvas != null) {
-                            onAction(ImmersivePlayerAction.CanvasFrameCaptured(mediaId, canvas, bitmap?.asImageBitmap()))
-                        }
-                    }
-                },
                 modifier = Modifier.fillMaxSize(),
             )
             Box(

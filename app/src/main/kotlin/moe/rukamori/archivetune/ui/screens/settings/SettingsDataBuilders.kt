@@ -63,15 +63,6 @@ fun buildSettingsGroups(
             accentColor = MaterialTheme.colorScheme.tertiary,
             onClick = { navController.navigate("settings/player") },
         )
-    val canvas =
-        SettingsItem(
-            key = "canvas",
-            icon = painterResource(R.drawable.motion_photos_on),
-            title = stringResource(R.string.archivetune_canvas),
-            subtitle = stringResource(R.string.canvas_settings_subtitle),
-            accentColor = MaterialTheme.colorScheme.tertiary,
-            onClick = { navController.navigate("settings/canvas") },
-        )
     val behavior =
         SettingsItem(
             key = "behavior",

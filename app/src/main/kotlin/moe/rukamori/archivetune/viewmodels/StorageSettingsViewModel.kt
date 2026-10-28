@@ -124,7 +124,6 @@ enum class StorageCacheClearUiKind {
     SONGS,
     DOWNLOADS,
     IMAGES,
-    CANVAS,
 }
 
 @Immutable
@@ -356,7 +355,6 @@ class StorageSettingsViewModel
                 StorageCacheKind.SONGS -> StorageCacheClearUiKind.SONGS
                 StorageCacheKind.DOWNLOADS -> StorageCacheClearUiKind.DOWNLOADS
                 StorageCacheKind.IMAGES -> StorageCacheClearUiKind.IMAGES
-                StorageCacheKind.CANVAS -> StorageCacheClearUiKind.CANVAS
             }
     }
 

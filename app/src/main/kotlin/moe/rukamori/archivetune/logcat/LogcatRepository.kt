@@ -202,8 +202,7 @@ private fun isRelevantLogcatEntry(
         "AndroidRuntime", "libc" -> level >= Log.ERROR
         "LeakCanaryController", "MusicDatabase", "MusicWidgetActions", "RLog" -> true
         "System.out" ->
-            message.startsWith("AppleMusicCanvas:") ||
-                message.startsWith("Error converting chart item:") ||
+            message.startsWith("Error converting chart item:") ||
                 message.startsWith("Error converting two row item:")
 
         else -> false

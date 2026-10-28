@@ -42,7 +42,6 @@ import moe.rukamori.archivetune.di.DownloadCache
 import moe.rukamori.archivetune.di.PlayerCache
 import moe.rukamori.archivetune.downloads.DownloadedArtworkRepository
 import moe.rukamori.archivetune.playback.DownloadUtil
-import moe.rukamori.archivetune.ui.player.CanvasArtworkPlaybackCache
 import moe.rukamori.archivetune.utils.ArtworkStorage
 import moe.rukamori.archivetune.utils.PreferenceStore
 import moe.rukamori.archivetune.utils.dataStore
@@ -55,7 +54,6 @@ enum class StorageFolderKind(
     SONG_CACHE(defaultDirectoryName = "exoplayer"),
     DOWNLOADS(defaultDirectoryName = "download"),
     IMAGE_CACHE(defaultDirectoryName = "coil"),
-    CANVAS_CACHE(defaultDirectoryName = "canvas"),
     ARTWORK_CACHE(defaultDirectoryName = "artwork"),
 }
 
@@ -126,7 +124,6 @@ enum class StorageCacheKind {
     SONGS,
     DOWNLOADS,
     IMAGES,
-    CANVAS,
 }
 
 sealed interface StorageCacheClearResult {
@@ -206,7 +203,6 @@ class StorageLocationRepository
                             StorageCacheKind.SONGS -> clearMediaCache(playerCache, StorageCacheKind.SONGS, onProgress)
                             StorageCacheKind.DOWNLOADS -> clearDownloads(onProgress)
                             StorageCacheKind.IMAGES -> clearImageCache(onProgress)
-                            StorageCacheKind.CANVAS -> clearCanvasCache(onProgress)
                         }
                     if (cleared) {
                         onProgress(StorageCacheClearProgress(kind = kind, percent = 100))
@@ -342,10 +338,6 @@ class StorageLocationRepository
                 cacheFiles =
                     listOf(
                         StorageFileMove(
-                            source = context.filesDir.resolve(CanvasArtworkCacheFileName),
-                            target = targetDirectory(StorageFolderKind.CANVAS_CACHE).resolve(CanvasArtworkCacheFileName),
-                        ),
-                        StorageFileMove(
                             source = context.filesDir.resolve(SavedArtworkCacheFileName),
                             target = targetDirectory(StorageFolderKind.ARTWORK_CACHE).resolve(SavedArtworkCacheFileName),
                         ),
@@ -405,11 +397,6 @@ class StorageLocationRepository
             runCatching {
                 downloadUtil.downloadManager.removeAllDownloads()
             }.isSuccess && clearMediaCache(downloadCache, StorageCacheKind.DOWNLOADS, onProgress)
-
-        private suspend fun clearCanvasCache(onProgress: suspend (StorageCacheClearProgress) -> Unit): Boolean {
-            val memoryAndIndexCleared = CanvasArtworkPlaybackCache.clearAndPersist()
-            return memoryAndIndexCleared && clearCacheDirectory(StorageFolderKind.CANVAS_CACHE, onProgress)
-        }
 
         private suspend fun clearImageCache(onProgress: suspend (StorageCacheClearProgress) -> Unit): Boolean {
             val imageLoader = context.imageLoader
@@ -913,8 +900,6 @@ private fun StorageFolderKind.toCacheKind(): StorageCacheKind =
         StorageFolderKind.IMAGE_CACHE,
         StorageFolderKind.ARTWORK_CACHE,
         -> StorageCacheKind.IMAGES
-
-        StorageFolderKind.CANVAS_CACHE -> StorageCacheKind.CANVAS
     }
 
 private fun File.toStorageLocationOption(
@@ -964,5 +949,4 @@ private const val ExternalStorageOptionIdPrefix = "external:"
 private const val ExternalStorageRootDirectoryName = "ArchiveTune"
 private const val AppRestartDelayMillis = 3_000L
 private const val StorageCopyBufferSizeBytes = 64 * 1024
-private const val CanvasArtworkCacheFileName = "canvas_artwork_cache.json"
 private const val SavedArtworkCacheFileName = "archivetune_saved_artworks.json"

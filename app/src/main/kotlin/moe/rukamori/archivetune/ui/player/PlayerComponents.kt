@@ -142,7 +142,6 @@ import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import moe.rukamori.archivetune.canvas.CanvasSource
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.EnableHapticFeedbackKey
 import moe.rukamori.archivetune.constants.PlayerBackgroundStyle
@@ -2202,9 +2201,6 @@ fun V8PlayerContent(
     menuState: MenuState,
     bottomSheetPageState: BottomSheetPageState,
     currentFormat: FormatEntity?,
-    canvasSource: CanvasSource?,
-    canvasPrimaryUrl: String?,
-    canvasFallbackUrl: String?,
     onSliderValueChange: (Long) -> Unit,
     onSliderValueChangeFinished: () -> Unit,
     onVolumeChange: (Float) -> Unit,
@@ -2249,9 +2245,6 @@ fun V8PlayerContent(
             subtitle = subtitle,
             artists = mediaMetadata.artists,
             artworkUrl = artworkUrl,
-            canvasSource = canvasSource,
-            canvasPrimaryUrl = canvasPrimaryUrl,
-            canvasFallbackUrl = canvasFallbackUrl,
             playbackState = playbackState,
             isPlaying = isPlaying,
             isLoading = isLoading,
@@ -2291,9 +2284,6 @@ fun V8PlayerContent(
             subtitle = subtitle,
             artists = mediaMetadata.artists,
             artworkUrl = artworkUrl,
-            canvasSource = canvasSource,
-            canvasPrimaryUrl = canvasPrimaryUrl,
-            canvasFallbackUrl = canvasFallbackUrl,
             playbackState = playbackState,
             isPlaying = isPlaying,
             isLoading = isLoading,
@@ -2336,9 +2326,6 @@ private fun V8PortraitContent(
     subtitle: String,
     artists: List<MediaMetadata.Artist>,
     artworkUrl: String?,
-    canvasSource: CanvasSource?,
-    canvasPrimaryUrl: String?,
-    canvasFallbackUrl: String?,
     playbackState: Int,
     isPlaying: Boolean,
     isLoading: Boolean,
@@ -2433,9 +2420,6 @@ private fun V8PortraitContent(
 
             V8Artwork(
                 artworkUrl = artworkUrl,
-                canvasSource = canvasSource,
-                canvasPrimaryUrl = canvasPrimaryUrl,
-                canvasFallbackUrl = canvasFallbackUrl,
                 isPlaying = isPlaying,
                 size = artworkSize,
             )
@@ -2502,9 +2486,6 @@ private fun V8LandscapeContent(
     subtitle: String,
     artists: List<MediaMetadata.Artist>,
     artworkUrl: String?,
-    canvasSource: CanvasSource?,
-    canvasPrimaryUrl: String?,
-    canvasFallbackUrl: String?,
     playbackState: Int,
     isPlaying: Boolean,
     isLoading: Boolean,
@@ -2549,9 +2530,6 @@ private fun V8LandscapeContent(
         ) {
             V8Artwork(
                 artworkUrl = artworkUrl,
-                canvasSource = canvasSource,
-                canvasPrimaryUrl = canvasPrimaryUrl,
-                canvasFallbackUrl = canvasFallbackUrl,
                 isPlaying = isPlaying,
                 size = artworkSize,
             )
@@ -2661,9 +2639,6 @@ private fun V8Header(
 @Composable
 private fun V8Artwork(
     artworkUrl: String?,
-    canvasSource: CanvasSource?,
-    canvasPrimaryUrl: String?,
-    canvasFallbackUrl: String?,
     isPlaying: Boolean,
     size: androidx.compose.ui.unit.Dp,
 ) {
@@ -2682,16 +2657,6 @@ private fun V8Artwork(
             modifier = Modifier.fillMaxSize(),
         )
 
-        if (!canvasPrimaryUrl.isNullOrBlank() || !canvasFallbackUrl.isNullOrBlank()) {
-            CanvasArtworkPlayer(
-                source = canvasSource,
-                primaryUrl = canvasPrimaryUrl,
-                fallbackUrl = canvasFallbackUrl,
-                isPlaying = isPlaying,
-                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
     }
 }
 
@@ -3120,9 +3085,6 @@ fun V9PlayerContent(
     textBackgroundColor: Color,
     textButtonColor: Color,
     iconButtonColor: Color,
-    canvasSource: CanvasSource?,
-    canvasPrimaryUrl: String?,
-    canvasFallbackUrl: String?,
     onCollapseClick: () -> Unit,
     onQueueClick: () -> Unit,
     onSliderValueChange: (Long) -> Unit,
@@ -3189,9 +3151,6 @@ fun V9PlayerContent(
             explicit = mediaMetadata.explicit,
             artists = mediaMetadata.artists,
             artworkUrl = artworkUrl,
-            canvasSource = canvasSource,
-            canvasPrimaryUrl = canvasPrimaryUrl,
-            canvasFallbackUrl = canvasFallbackUrl,
             playbackState = playbackState,
             isPlaying = isPlaying,
             isLoading = isLoading,
@@ -3225,9 +3184,6 @@ fun V9PlayerContent(
             explicit = mediaMetadata.explicit,
             artists = mediaMetadata.artists,
             artworkUrl = artworkUrl,
-            canvasSource = canvasSource,
-            canvasPrimaryUrl = canvasPrimaryUrl,
-            canvasFallbackUrl = canvasFallbackUrl,
             playbackState = playbackState,
             isPlaying = isPlaying,
             isLoading = isLoading,
@@ -3262,9 +3218,6 @@ private fun V9PortraitContent(
     explicit: Boolean,
     artists: List<MediaMetadata.Artist>,
     artworkUrl: String?,
-    canvasSource: CanvasSource?,
-    canvasPrimaryUrl: String?,
-    canvasFallbackUrl: String?,
     playbackState: Int,
     isPlaying: Boolean,
     isLoading: Boolean,
@@ -3330,9 +3283,6 @@ private fun V9PortraitContent(
             ) {
                 V9Artwork(
                     artworkUrl = artworkUrl,
-                    canvasSource = canvasSource,
-                    canvasPrimaryUrl = canvasPrimaryUrl,
-                    canvasFallbackUrl = canvasFallbackUrl,
                     isPlaying = isPlaying,
                     placeholderColor = textBackgroundColor.copy(alpha = 0.08f),
                     modifier = Modifier.aspectRatio(1f)
@@ -3482,9 +3432,6 @@ private fun V9LandscapeContent(
     explicit: Boolean,
     artists: List<MediaMetadata.Artist>,
     artworkUrl: String?,
-    canvasSource: CanvasSource?,
-    canvasPrimaryUrl: String?,
-    canvasFallbackUrl: String?,
     playbackState: Int,
     isPlaying: Boolean,
     isLoading: Boolean,
@@ -3528,9 +3475,6 @@ private fun V9LandscapeContent(
         ) {
             V9Artwork(
                 artworkUrl = artworkUrl,
-                canvasSource = canvasSource,
-                canvasPrimaryUrl = canvasPrimaryUrl,
-                canvasFallbackUrl = canvasFallbackUrl,
                 isPlaying = isPlaying,
                 size = artworkSize,
                 placeholderColor = textBackgroundColor.copy(alpha = 0.08f),
@@ -3696,9 +3640,6 @@ private fun V9HeaderButton(
 @Composable
 private fun V9Artwork(
     artworkUrl: String?,
-    canvasSource: CanvasSource?,
-    canvasPrimaryUrl: String?,
-    canvasFallbackUrl: String?,
     isPlaying: Boolean,
     placeholderColor: Color,
     modifier: Modifier = Modifier,
@@ -3720,16 +3661,6 @@ private fun V9Artwork(
             modifier = Modifier.fillMaxSize(),
         )
 
-        if (!canvasPrimaryUrl.isNullOrBlank() || !canvasFallbackUrl.isNullOrBlank()) {
-            CanvasArtworkPlayer(
-                source = canvasSource,
-                primaryUrl = canvasPrimaryUrl,
-                fallbackUrl = canvasFallbackUrl,
-                isPlaying = isPlaying,
-                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
     }
 }
 

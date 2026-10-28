@@ -81,7 +81,6 @@ import moe.rukamori.archivetune.constants.DisableBlurKey
 import moe.rukamori.archivetune.constants.LibraryChipOrderKey
 import moe.rukamori.archivetune.constants.LibraryFilter
 import moe.rukamori.archivetune.constants.PlaylistTagOrderKey
-import moe.rukamori.archivetune.constants.ShowSpotifyPlaylistsKey
 import moe.rukamori.archivetune.constants.ShowTagsInLibraryKey
 import moe.rukamori.archivetune.constants.toLibraryFilterOrder
 import moe.rukamori.archivetune.constants.toPlaylistTagOrder
@@ -108,7 +107,6 @@ fun LibraryScreen(
     val (selectedTagIds, onSelectedTagIdsChange) = rememberPlaylistTagFilterState(database)
     val allTags by database.allTags().collectAsState(initial = emptyList())
     val (showTagsInLibrary) = rememberPreference(ShowTagsInLibraryKey, defaultValue = true)
-    val (showSpotifyPlaylists) = rememberPreference(ShowSpotifyPlaylistsKey, defaultValue = false)
     val (disableBlur) = rememberPreference(DisableBlurKey, false)
     val (libraryChipOrderPreference) =
         rememberPreference(
@@ -126,10 +124,8 @@ fun LibraryScreen(
                 .mapNotNull { tagId -> tagsById[tagId] }
         }
     val libraryFilters =
-        remember(showSpotifyPlaylists, libraryChipOrderPreference) {
-            libraryChipOrderPreference
-                .toLibraryFilterOrder()
-                .filter { filter -> showSpotifyPlaylists || filter != LibraryFilter.SPOTIFY }
+        remember(libraryChipOrderPreference) {
+            libraryChipOrderPreference.toLibraryFilterOrder()
         }
 
     if (showTagsManagementDialog) {

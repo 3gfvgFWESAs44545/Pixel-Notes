@@ -340,9 +340,7 @@ dependencies {
     ksp(libs.kotlin.metadata.jvm)
 
     implementation(project(":core"))
-    implementation(project(":canvas"))
     implementation(project(":shazamkit"))
-    implementation(project(":spotifycore"))
     implementation(project(":morideobfuscator"))
     implementation("com.materialkolor:material-kolor:5.0.1")
 

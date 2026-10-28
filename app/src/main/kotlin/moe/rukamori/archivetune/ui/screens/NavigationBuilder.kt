@@ -43,8 +43,6 @@ import moe.rukamori.archivetune.ui.screens.playlist.AutoPlaylistScreen
 import moe.rukamori.archivetune.ui.screens.playlist.CachePlaylistScreen
 import moe.rukamori.archivetune.ui.screens.playlist.LocalPlaylistScreen
 import moe.rukamori.archivetune.ui.screens.playlist.OnlinePlaylistScreen
-import moe.rukamori.archivetune.ui.screens.playlist.SpotifyLikedSongsScreen
-import moe.rukamori.archivetune.ui.screens.playlist.SpotifyPlaylistScreen
 import moe.rukamori.archivetune.ui.screens.playlist.TopPlaylistScreen
 import moe.rukamori.archivetune.ui.screens.podcast.PodcastRoute
 import moe.rukamori.archivetune.ui.screens.podcast.PodcastScreen
@@ -56,7 +54,6 @@ import moe.rukamori.archivetune.ui.screens.search.SearchScreen
 import moe.rukamori.archivetune.ui.screens.settings.AboutScreen
 import moe.rukamori.archivetune.ui.screens.settings.AodCustomizedScreen
 import moe.rukamori.archivetune.ui.screens.settings.AndroidAutoSettings
-import moe.rukamori.archivetune.ui.screens.settings.CanvasSettings
 import moe.rukamori.archivetune.ui.screens.settings.AppearanceSettings
 import moe.rukamori.archivetune.ui.screens.settings.BackupAndRestore
 import moe.rukamori.archivetune.ui.screens.settings.CustomizeBackground
@@ -322,20 +319,6 @@ fun NavGraphBuilder.navigationBuilder(
         LocalPlaylistScreen(navController, scrollBehavior)
     }
     composable(
-        route = "spotify_playlist/{playlistId}",
-        arguments =
-            listOf(
-                navArgument("playlistId") {
-                    type = NavType.StringType
-                },
-            ),
-    ) {
-        SpotifyPlaylistScreen(navController, scrollBehavior)
-    }
-    composable(route = "spotify_liked_songs") {
-        SpotifyLikedSongsScreen(navController, scrollBehavior)
-    }
-    composable(
         route = "auto_playlist/{playlist}?tab={tab}",
         arguments =
             listOf(
@@ -426,9 +409,6 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/player") {
         PlayerSettings(navController)
-    }
-    composable("settings/canvas") {
-        CanvasSettings(navController)
     }
     composable("settings/android_auto") {
         AndroidAutoSettings(navController)

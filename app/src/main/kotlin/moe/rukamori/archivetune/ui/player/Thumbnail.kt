@@ -89,7 +89,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.canvas.CanvasVideo
 import moe.rukamori.archivetune.constants.BackdropBlurAmountKey
 import moe.rukamori.archivetune.constants.BackdropEnabledKey
 import moe.rukamori.archivetune.constants.CropThumbnailToSquareKey
@@ -123,7 +122,6 @@ private data class ThumbnailPage(
 @Composable
 fun Thumbnail(
     sliderPositionProvider: () -> Long?,
-    canvas: CanvasVideo?,
     modifier: Modifier = Modifier,
     isPlayerExpanded: Boolean = true,
     applyStatusBarPadding: Boolean = true,
@@ -371,8 +369,6 @@ fun Thumbnail(
                         val incrementalSeekSkipEnabled by rememberPreference(SeekExtraSeconds, defaultValue = false)
                         var skipMultiplier by remember { mutableStateOf(1) }
                         var lastTapTime by remember { mutableLongStateOf(0L) }
-                        val shouldUseCanvas = item.mediaId.isNotBlank() && item.mediaId == currentMediaItem?.mediaId
-                        val canvasArtwork = canvas.takeIf { shouldUseCanvas }
 
                         Box(
                             modifier =
@@ -446,9 +442,6 @@ fun Thumbnail(
                                         )
                                     }
                                 } else {
-                                    val primaryCanvasUrl = canvasArtwork?.animated
-                                    val fallbackCanvasUrl = canvasArtwork?.videoUrl
-
                                     val shouldCropArtwork =
                                         cropThumbnailToSquare &&
                                             playerDesignStyle != PlayerDesignStyle.V7 &&
@@ -516,18 +509,6 @@ fun Thumbnail(
                                                 .let { if (shouldCropArtwork) it.aspectRatio(1f) else it },
                                     )
 
-                                    if (shouldUseCanvas &&
-                                        (!primaryCanvasUrl.isNullOrBlank() || !fallbackCanvasUrl.isNullOrBlank())
-                                    ) {
-                                        CanvasArtworkPlayer(
-                                            source = canvasArtwork?.source,
-                                            primaryUrl = primaryCanvasUrl,
-                                            fallbackUrl = fallbackCanvasUrl,
-                                            isPlaying = isPlaying,
-                                            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
-                                            modifier = Modifier.fillMaxSize(),
-                                        )
-                                    }
                                 }
                             }
                         }

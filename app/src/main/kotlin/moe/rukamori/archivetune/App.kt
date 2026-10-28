@@ -41,7 +41,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.appicon.RestoreLauncherEntryUseCase
-import moe.rukamori.archivetune.canvas.StartCanvasPolicyUseCase
 import moe.rukamori.archivetune.constants.*
 import moe.rukamori.archivetune.downloads.DownloadedArtworkRepository
 import moe.rukamori.archivetune.extensions.*
@@ -88,9 +87,6 @@ class App :
 
     @Inject
     lateinit var youtubeiStreamRepository: YoutubeiStreamRepository
-
-    @Inject
-    lateinit var startCanvasPolicy: StartCanvasPolicyUseCase
 
     @Inject
     lateinit var restoreLauncherEntry: RestoreLauncherEntryUseCase
@@ -157,8 +153,6 @@ class App :
     }
 
     private fun initializeCriticalSync() {
-        startCanvasPolicy.start(applicationScope)
-
         val locale = Locale.getDefault()
         val languageTag = locale.toLanguageTag().replace("-Hant", "")
         YouTube.locale =
@@ -211,7 +205,7 @@ class App :
             }
         }
 
-        // Pixel Notes: proxy, DNS over HTTPS, ListenBrainz, Listen Together, AI and SponsorBlock were removed. Clear any values
+        // Pixel Notes: proxy, DNS over HTTPS, ListenBrainz, Listen Together, AI, SponsorBlock, Canvas and Spotify were removed. Clear any values
         // saved by older versions so passwords and tokens don't linger on the phone.
         applicationScope.launch(Dispatchers.IO) {
             runCatching {
@@ -227,7 +221,7 @@ class App :
                         "daily_nightly_releases_last_checked_at", "daily_nightly_releases_fingerprint",
                     )
                 dataStore.edit { prefs ->
-                    prefs.asMap().keys.filter { it.name in removedKeys || it.name.startsWith("together_") || it.name.startsWith("ai_") || it.name.startsWith("aiContentFilter") || it.name.startsWith("sponsorBlock") }.forEach { prefs.remove(it) }
+                    prefs.asMap().keys.filter { it.name in removedKeys || it.name.startsWith("together_") || it.name.startsWith("ai_") || it.name.startsWith("aiContentFilter") || it.name.startsWith("sponsorBlock") || it.name.startsWith("canvas") || it.name == "archiveTuneCanvas" || it.name == "maxCanvasCacheSize" || it.name.startsWith("spotify_") || it.name == "show_spotify_playlists" }.forEach { prefs.remove(it) }
                 }
             }
             // The old ArchiveTune update checker: stop its background job and remove its notification category.

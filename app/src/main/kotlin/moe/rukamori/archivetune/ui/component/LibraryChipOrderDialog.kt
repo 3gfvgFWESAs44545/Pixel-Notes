@@ -141,8 +141,6 @@ private fun LibraryFilter.labelResId(): Int =
     when (this) {
         LibraryFilter.LIBRARY -> R.string.filter_library
         LibraryFilter.PLAYLISTS -> R.string.playlists
-        LibraryFilter.PODCASTS -> R.string.podcast
-        LibraryFilter.SPOTIFY -> R.string.spotify_playlists
         LibraryFilter.SONGS -> R.string.songs
         LibraryFilter.ARTISTS -> R.string.artists
         LibraryFilter.ALBUMS -> R.string.albums

@@ -148,11 +148,8 @@ import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.LocalDownloadUtil
 import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.canvas.CanvasPlaybackRequest
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
 import moe.rukamori.archivetune.ui.utils.navigateToArtist
-import moe.rukamori.archivetune.viewmodels.CanvasPlaybackViewModel
-import moe.rukamori.archivetune.viewmodels.CanvasPlaybackState
 import moe.rukamori.archivetune.viewmodels.ImmersivePlayerViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import moe.rukamori.archivetune.constants.BackdropBlurAmountKey
@@ -206,7 +203,6 @@ import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberLowDataModeActive
 import moe.rukamori.archivetune.utils.rememberPreference
-import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -302,7 +298,6 @@ fun BottomSheetPlayer(
     pureBlack: Boolean,
     navigationProximityProvider: () -> Float = { 0f },
     navigationBarMode: NavigationBarMode = NavigationBarMode.CONNECTED,
-    canvasViewModel: CanvasPlaybackViewModel = hiltViewModel(),
     immersivePlayerViewModel: ImmersivePlayerViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -448,29 +443,6 @@ fun BottomSheetPlayer(
             isMusicVideo = mediaMetadata?.isMusicVideo ?: false,
         )
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.Standard)
-    val canvasState by canvasViewModel.state.collectAsStateWithLifecycle()
-    val canvasRequest = remember(mediaMetadata, playerDesignStyle, aodModeEnabled) {
-        mediaMetadata?.takeIf {
-            !aodModeEnabled &&
-                playerDesignStyle != PlayerDesignStyle.V5 &&
-                playerDesignStyle != PlayerDesignStyle.V7
-        }?.let { metadata ->
-            val country = Locale.getDefault().country
-            CanvasPlaybackRequest(
-                mediaId = metadata.id,
-                title = metadata.title,
-                artist = metadata.artists.firstOrNull()?.name.orEmpty(),
-                storefront = if (country.length == 2) country.lowercase(Locale.ROOT) else "us",
-                requireVertical = false,
-            )
-        }
-    }
-    LaunchedEffect(canvasViewModel, canvasRequest) {
-        canvasViewModel.setRequest(canvasRequest)
-    }
-    DisposableEffect(canvasViewModel) {
-        onDispose { canvasViewModel.setRequest(null) }
-    }
 
     var position by rememberSaveable(mediaMetadata?.id) {
         mutableLongStateOf(playerConnection.player.currentPosition)
@@ -1233,11 +1205,6 @@ fun BottomSheetPlayer(
                 }
             }
 
-        val resolvedCanvas = (canvasState as? CanvasPlaybackState.Success)
-            ?.takeIf { it.request == canvasRequest }
-            ?.video
-        val artworkCanvas = resolvedCanvas
-
         val controlsContent: @Composable ColumnScope.(MediaMetadata, Boolean) -> Unit = { mediaMetadata, landscape ->
             PlayerControlsContent(
                 mediaMetadata = mediaMetadata,
@@ -1431,9 +1398,6 @@ fun BottomSheetPlayer(
                                 menuState = menuState,
                                 bottomSheetPageState = bottomSheetPageState,
                                 currentFormat = currentFormat,
-                                canvasSource = artworkCanvas?.source,
-                                canvasPrimaryUrl = artworkCanvas?.animated,
-                                canvasFallbackUrl = artworkCanvas?.videoUrl,
                                 onSliderValueChange = onSliderValueChange,
                                 onSliderValueChangeFinished = onSliderValueChangeFinished,
                                 onVolumeChange = onPlayerVolumeChange,
@@ -1468,9 +1432,6 @@ fun BottomSheetPlayer(
                             textBackgroundColor = TextBackgroundColor,
                             textButtonColor = textButtonColor,
                             iconButtonColor = iconButtonColor,
-                            canvasSource = artworkCanvas?.source,
-                            canvasPrimaryUrl = artworkCanvas?.animated,
-                            canvasFallbackUrl = artworkCanvas?.videoUrl,
                             onCollapseClick = { state.collapseSoft() },
                             onQueueClick = openQueue,
                             onSliderValueChange = onSliderValueChange,
@@ -1568,7 +1529,6 @@ fun BottomSheetPlayer(
                             ),
                         artwork = {
                             Thumbnail(
-                                canvas = artworkCanvas,
                                 sliderPositionProvider = { sliderPosition },
                                 modifier = Modifier.fillMaxSize(),
                                 isPlayerExpanded = state.isExpanded,
@@ -1723,9 +1683,6 @@ fun BottomSheetPlayer(
                                 menuState = menuState,
                                 bottomSheetPageState = bottomSheetPageState,
                                 currentFormat = currentFormat,
-                                canvasSource = artworkCanvas?.source,
-                                canvasPrimaryUrl = artworkCanvas?.animated,
-                                canvasFallbackUrl = artworkCanvas?.videoUrl,
                                 onSliderValueChange = onSliderValueChange,
                                 onSliderValueChangeFinished = onSliderValueChangeFinished,
                                 onVolumeChange = onPlayerVolumeChange,
@@ -1759,9 +1716,6 @@ fun BottomSheetPlayer(
                             textBackgroundColor = TextBackgroundColor,
                             textButtonColor = textButtonColor,
                             iconButtonColor = iconButtonColor,
-                            canvasSource = artworkCanvas?.source,
-                            canvasPrimaryUrl = artworkCanvas?.animated,
-                            canvasFallbackUrl = artworkCanvas?.videoUrl,
                             onCollapseClick = { state.collapseSoft() },
                             onQueueClick = openQueue,
                             onSliderValueChange = onSliderValueChange,
@@ -1864,7 +1818,6 @@ fun BottomSheetPlayer(
                             modifier = Modifier.weight(1f),
                         ) {
                             Thumbnail(
-                                canvas = artworkCanvas,
                                 sliderPositionProvider = { sliderPosition },
                                 modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
                                 isPlayerExpanded = state.isExpanded,
