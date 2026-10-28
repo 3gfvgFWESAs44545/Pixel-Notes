@@ -9,12 +9,10 @@
 
 package moe.rukamori.archivetune.ui.screens.settings
 
-import moe.rukamori.archivetune.viewmodels.ArchiveTuneContributorsUrl
 import moe.rukamori.archivetune.viewmodels.ArchiveTuneRepoUrl
 import moe.rukamori.archivetune.viewmodels.KhinsiderDlWebRepoUrl
 import moe.rukamori.archivetune.viewmodels.KhinsiderDonateFaqUrl
 import moe.rukamori.archivetune.viewmodels.KhinsiderSiteUrl
-import moe.rukamori.archivetune.viewmodels.VgInsideRepoUrl
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
@@ -109,6 +107,8 @@ import moe.rukamori.archivetune.viewmodels.TeamMemberCollection
 fun AboutScreen(
     navController: NavController,
     viewModel: AboutViewModel = hiltViewModel(),
+    /** Pixel Notes: true shows the "ArchiveTune contributors" sub-page instead of the main About page. */
+    archiveTuneContributors: Boolean = false,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
@@ -127,6 +127,8 @@ fun AboutScreen(
         scrollBehavior = scrollBehavior,
         onNavigateUp = navController::navigateUp,
         onNavigateHome = navController::backToMain,
+        archiveTuneContributors = archiveTuneContributors,
+        onOpenArchiveTuneContributors = { navController.navigate(ArchiveTuneContributorsRoute) },
         onOpenUri = viewModel::openUri,
         onRetryContributors = viewModel::retryContributors,
         onOpenTranslationContributors = viewModel::openTranslationContributors,
@@ -144,6 +146,8 @@ private fun AboutScreenContent(
     scrollBehavior: TopAppBarScrollBehavior,
     onNavigateUp: () -> Unit,
     onNavigateHome: () -> Unit,
+    archiveTuneContributors: Boolean,
+    onOpenArchiveTuneContributors: () -> Unit,
     onOpenUri: (String) -> Unit,
     onRetryContributors: () -> Unit,
     onOpenTranslationContributors: () -> Unit,
@@ -165,7 +169,7 @@ private fun AboutScreenContent(
             LargeFlexibleTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.about),
+                        text = if (archiveTuneContributors) "ArchiveTune contributors" else stringResource(R.string.about),
                         fontWeight = FontWeight.Bold,
                     )
                 },
@@ -230,6 +234,8 @@ private fun AboutScreenContent(
             is AboutScreenState.Success -> {
                 AboutSuccessContent(
                     model = state.model,
+                    archiveTuneContributors = archiveTuneContributors,
+                    onOpenArchiveTuneContributors = onOpenArchiveTuneContributors,
                     onOpenUri = onOpenUri,
                     onRetryContributors = onRetryContributors,
                     onOpenTranslationContributors = onOpenTranslationContributors,
@@ -671,6 +677,8 @@ private fun DependencyLicenseListItem(
 @Composable
 private fun AboutSuccessContent(
     model: AboutUiModel,
+    archiveTuneContributors: Boolean,
+    onOpenArchiveTuneContributors: () -> Unit,
     onOpenUri: (String) -> Unit,
     onRetryContributors: () -> Unit,
     onOpenTranslationContributors: () -> Unit,
@@ -687,6 +695,84 @@ private fun AboutSuccessContent(
         contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(AboutSpacing.sm),
     ) {
+        if (archiveTuneContributors) {
+            // Pixel Notes: the original ArchiveTune people, on their own page.
+            item(key = "archivetune_intro", contentType = "about_thanks") {
+                AboutContentContainer {
+                    AboutThanksCard(
+                        title = "The people behind ArchiveTune",
+                        body =
+                            "Pixel Notes is built on ArchiveTune. These are the developers, translators and " +
+                                "contributors who made it.",
+                        links = listOf("ArchiveTune on GitHub" to ArchiveTuneRepoUrl),
+                        highlighted = false,
+                        onOpenUri = onOpenUri,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            item(key = "lead_developer", contentType = "about_team_section") {
+                AboutContentContainer {
+                    TeamMemberSection(
+                        title = stringResource(R.string.about_lead_developer),
+                        members = leadDevelopers,
+                        onOpenUri = onOpenUri,
+                        prominentFirstItem = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            item(key = "team", contentType = "about_team_section") {
+                AboutContentContainer {
+                    TeamMemberSection(
+                        title = stringResource(R.string.about_archive_tune_team),
+                        members = model.collaborators,
+                        onOpenUri = onOpenUri,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            item(key = "respecters", contentType = "about_team_section") {
+                AboutContentContainer {
+                    TeamMemberSection(
+                        title = stringResource(R.string.about_respecter),
+                        members = model.respecters,
+                        onOpenUri = onOpenUri,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            item(key = "translators", contentType = "about_actions") {
+                AboutContentContainer {
+                    AboutActionListItem(
+                        title = stringResource(R.string.about_contributor_translation),
+                        iconResId = R.drawable.translate,
+                        index = 0,
+                        itemCount = 1,
+                        onClick = onOpenTranslationContributors,
+                    )
+                }
+            }
+
+            item(key = "contributors", contentType = "about_contributors") {
+                AboutContentContainer {
+                    ContributorsSection(
+                        state = model.contributorsState,
+                        readMoreUrl = model.contributorsReadMoreUrl,
+                        onOpenProfile = onOpenUri,
+                        onRetry = onRetryContributors,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            return@LazyColumn
+        }
+
+        // Pixel Notes: the app itself first, with its own links.
         item(key = "identity", contentType = "about_identity") {
             AboutContentContainer {
                 AboutIdentityCard(
@@ -717,22 +803,14 @@ private fun AboutSuccessContent(
             }
         }
 
-        item(key = "thanks_archivetune", contentType = "about_thanks") {
+        item(key = "thanks_khinsiderdl", contentType = "about_thanks") {
             AboutContentContainer {
                 AboutThanksCard(
-                    title = "Built on ArchiveTune",
+                    title = "khinsiderdl-web",
                     body =
-                        "Pixel Notes is a modified version of ArchiveTune by Rukamori and the ArchiveTune contributors, " +
-                            "shared under the GPL-3.0 licence. The player, library and design are their work. Thank you! " +
-                            "khinsider support was inspired by khinsiderdl-web by kobayashi90. " +
-                            "The original ArchiveTune team and contributors are listed below.",
-                    links =
-                        listOf(
-                            "ArchiveTune on GitHub" to ArchiveTuneRepoUrl,
-                            "ArchiveTune contributors" to ArchiveTuneContributorsUrl,
-                            "khinsiderdl-web" to KhinsiderDlWebRepoUrl,
-                            "Pixel Notes source code" to VgInsideRepoUrl,
-                        ),
+                        "Pixel Notes reads khinsider's pages the same way khinsiderdl-web by kobayashi90 does. " +
+                            "Thanks for showing how.",
+                    links = listOf("khinsiderdl-web on GitHub" to KhinsiderDlWebRepoUrl),
                     highlighted = false,
                     onOpenUri = onOpenUri,
                     modifier = Modifier.fillMaxWidth(),
@@ -740,59 +818,42 @@ private fun AboutSuccessContent(
             }
         }
 
-        item(key = "project_information", contentType = "about_actions") {
+        item(key = "thanks_archivetune", contentType = "about_thanks") {
             AboutContentContainer {
-                AboutProjectInformationSection(
-                    onOpenTranslationContributors = onOpenTranslationContributors,
-                    onOpenDependencyLicenses = onOpenDependencyLicenses,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-
-        item(key = "lead_developer", contentType = "about_team_section") {
-            AboutContentContainer {
-                TeamMemberSection(
-                    title = stringResource(R.string.about_lead_developer),
-                    members = leadDevelopers,
-                    onOpenUri = onOpenUri,
-                    prominentFirstItem = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-
-        item(key = "team", contentType = "about_team_section") {
-            AboutContentContainer {
-                TeamMemberSection(
-                    title = stringResource(R.string.about_archive_tune_team),
-                    members = model.collaborators,
+                AboutThanksCard(
+                    title = "Built on ArchiveTune",
+                    body =
+                        "Pixel Notes is a modified version of ArchiveTune by Rukamori and the ArchiveTune contributors, " +
+                            "shared under the GPL-3.0 licence. The player, library and design are their work. Thank you!",
+                    links = listOf("ArchiveTune on GitHub" to ArchiveTuneRepoUrl),
+                    highlighted = false,
                     onOpenUri = onOpenUri,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
 
-        item(key = "respecters", contentType = "about_team_section") {
+        item(key = "more", contentType = "about_actions") {
             AboutContentContainer {
-                TeamMemberSection(
-                    title = stringResource(R.string.about_respecter),
-                    members = model.respecters,
-                    onOpenUri = onOpenUri,
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-
-        item(key = "contributors", contentType = "about_contributors") {
-            AboutContentContainer {
-                ContributorsSection(
-                    state = model.contributorsState,
-                    readMoreUrl = model.contributorsReadMoreUrl,
-                    onOpenProfile = onOpenUri,
-                    onRetry = onRetryContributors,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                    verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                ) {
+                    AboutActionListItem(
+                        title = "ArchiveTune contributors",
+                        iconResId = R.drawable.person,
+                        index = 0,
+                        itemCount = 2,
+                        onClick = onOpenArchiveTuneContributors,
+                    )
+                    AboutActionListItem(
+                        title = stringResource(R.string.about_license),
+                        iconResId = R.drawable.info,
+                        index = 1,
+                        itemCount = 2,
+                        onClick = onOpenDependencyLicenses,
+                    )
+                }
             }
         }
     }
@@ -984,33 +1045,6 @@ private fun LinkChipRow(
                 },
             )
         }
-    }
-}
-
-@Composable
-private fun AboutProjectInformationSection(
-    onOpenTranslationContributors: () -> Unit,
-    onOpenDependencyLicenses: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
-    ) {
-        AboutActionListItem(
-            title = stringResource(R.string.about_contributor_translation),
-            iconResId = R.drawable.translate,
-            index = 0,
-            itemCount = 2,
-            onClick = onOpenTranslationContributors,
-        )
-        AboutActionListItem(
-            title = stringResource(R.string.about_license),
-            iconResId = R.drawable.info,
-            index = 1,
-            itemCount = 2,
-            onClick = onOpenDependencyLicenses,
-        )
     }
 }
 
@@ -1507,3 +1541,5 @@ private fun AboutThanksCard(
         }
     }
 }
+
+const val ArchiveTuneContributorsRoute = "settings/about/archivetune_contributors"

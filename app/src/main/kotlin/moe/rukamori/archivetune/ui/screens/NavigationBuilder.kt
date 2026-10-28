@@ -488,6 +488,9 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/about") {
         AboutScreen(navController)
     }
+    composable(moe.rukamori.archivetune.ui.screens.settings.ArchiveTuneContributorsRoute) {
+        AboutScreen(navController, archiveTuneContributors = true)
+    }
     composable(moe.rukamori.archivetune.ui.screens.settings.PixelNotesUpdateRoute) {
         moe.rukamori.archivetune.ui.screens.settings.PixelNotesUpdateScreen(navController)
     }
