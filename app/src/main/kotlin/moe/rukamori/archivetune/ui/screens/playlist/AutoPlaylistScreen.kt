@@ -77,7 +77,6 @@ import moe.rukamori.archivetune.constants.AppBarHeight
 import moe.rukamori.archivetune.constants.AutoPlaylistSongSortDescendingKey
 import moe.rukamori.archivetune.constants.AutoPlaylistSongSortType
 import moe.rukamori.archivetune.constants.AutoPlaylistSongSortTypeKey
-import moe.rukamori.archivetune.constants.YtmSyncKey
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.extensions.togglePlayPause
 import moe.rukamori.archivetune.playback.queues.ListQueue
@@ -140,7 +139,6 @@ fun AutoPlaylistScreen(
         }
     }
 
-    val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
     val likeLength = remember(songs) { songs.fastSumBy { it.song.duration } }
 
@@ -190,12 +188,6 @@ fun AutoPlaylistScreen(
     val downloadUtil = LocalDownloadUtil.current
     var downloads by remember { mutableStateOf<Map<String, Download>>(emptyMap()) }
     var downloadState by remember { mutableStateOf<HeaderDownloadState>(HeaderDownloadState.None) }
-
-    LaunchedEffect(ytmSync, playlistType) {
-        if (ytmSync && playlistType == PlaylistType.LIKE) {
-            viewModel.syncLikedSongs()
-        }
-    }
 
     val globalDownloadState = remember(downloads) {
         val activeDownloads = downloads.values.filter {

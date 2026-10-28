@@ -161,8 +161,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.datastore.preferences.core.edit
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
@@ -319,7 +317,6 @@ import moe.rukamori.archivetune.utils.setAppLocale
 import moe.rukamori.archivetune.viewmodels.BackupCategory
 import moe.rukamori.archivetune.viewmodels.BackupRestoreViewModel
 import moe.rukamori.archivetune.viewmodels.HomeViewModel
-import moe.rukamori.archivetune.viewmodels.MainMenuViewModel
 import moe.rukamori.archivetune.viewmodels.NetworkBannerViewModel
 import moe.rukamori.archivetune.viewmodels.OnlineSearchSort
 import java.util.Locale
@@ -821,10 +818,6 @@ class MainActivity : ComponentActivity() {
                     val coroutineScope = rememberCoroutineScope()
                     val homeViewModel: HomeViewModel = hiltViewModel()
                     val networkBannerViewModel: NetworkBannerViewModel = hiltViewModel()
-                    val mainMenuViewModel: MainMenuViewModel = hiltViewModel()
-                    val topAppBarOverflowExpanded by mainMenuViewModel.expanded.collectAsStateWithLifecycle()
-                    val menuProfileState by mainMenuViewModel.profileState.collectAsStateWithLifecycle()
-                    val menuAccountImageUrl by homeViewModel.accountImageUrl.collectAsStateWithLifecycle()
                     val menuHazeState = rememberHazeState()
                     val floatingBarsHazeState = rememberHazeState()
                     val navigationBarBackgroundStyle by rememberEnumPreference(
@@ -835,14 +828,6 @@ class MainActivity : ComponentActivity() {
                         key = NavigationBarModeKey,
                         defaultValue = NavigationBarMode.CONNECTED,
                     )
-                    val menuLifecycleOwner = LocalLifecycleOwner.current
-                    LaunchedEffect(mainMenuViewModel, navController, menuLifecycleOwner) {
-                        menuLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                            mainMenuViewModel.destinations.collect { destination ->
-                                navController.navigate(destination.route) { launchSingleTop = true }
-                            }
-                        }
-                    }
                     val allLocalItems by homeViewModel.allLocalItems.collectAsState()
                     val allYtItems by homeViewModel.allYtItems.collectAsState()
                     val networkBannerState by networkBannerViewModel.bannerState.collectAsStateWithLifecycle()
@@ -993,9 +978,6 @@ class MainActivity : ComponentActivity() {
                         if (!showHomeOverflowFab) {
                             homeOverflowMenuExpanded = false
                         }
-                    }
-                    LaunchedEffect(currentRoute) {
-                        mainMenuViewModel.dismiss()
                     }
 
                     val playerBackground by rememberEnumPreference(

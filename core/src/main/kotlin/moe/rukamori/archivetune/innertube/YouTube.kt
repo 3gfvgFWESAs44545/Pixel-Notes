@@ -826,6 +826,7 @@ object YouTube {
 
     suspend fun playlist(playlistId: String): Result<PlaylistPage> =
         runCatching {
+            if (khinsiderMode) throw IllegalStateException("YouTube playlists are not available for khinsider content")
             val response =
                 innerTube
                     .browse(

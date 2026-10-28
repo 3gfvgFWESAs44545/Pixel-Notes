@@ -74,7 +74,6 @@ import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.LocalDatabase
 import moe.rukamori.archivetune.LocalDownloadUtil
 import moe.rukamori.archivetune.LocalPlayerConnection
-import moe.rukamori.archivetune.LocalSyncUtils
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.ListThumbnailSize
 import moe.rukamori.archivetune.constants.SpeedDialSongIdsKey
@@ -123,7 +122,6 @@ fun YouTubePlaylistMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val syncUtils = LocalSyncUtils.current
     val dbPlaylist by database.playlistByBrowseId(playlist.id).collectAsState(initial = null)
     val (speedDialSongIds, onSpeedDialSongIdsChange) = rememberPreference(SpeedDialSongIdsKey, "")
     val speedDialPins = remember(speedDialSongIds) { parseSpeedDialPins(speedDialSongIds) }
@@ -467,7 +465,6 @@ fun YouTubePlaylistMenu(
     val addToQueueText = stringResource(R.string.add_to_queue)
     val addToPlaylistText = stringResource(R.string.add_to_playlist)
     val importPlaylistText = stringResource(R.string.import_playlist)
-    val ytSyncText = stringResource(R.string.yt_sync)
     val shareText = stringResource(R.string.share)
     val selectText = stringResource(R.string.select)
 
@@ -727,136 +724,6 @@ fun YouTubePlaylistMenu(
                             Modifier.clickable {
                                 showImportPlaylistDialog = true
                             },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    )
-
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
-                    ListItem(
-                        headlineContent = { Text(text = ytSyncText) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.sync),
-                                contentDescription = null,
-                            )
-                        },
-                        trailingContent = {
-                            val checked = dbPlaylist?.playlist?.isAutoSync ?: false
-                            Switch(
-                                checked = checked,
-                                onCheckedChange = { newValue ->
-                                    coroutineScope.launch(Dispatchers.IO) {
-                                        try {
-                                            val currentDbPlaylist = dbPlaylist
-                                            if (currentDbPlaylist?.playlist == null) {
-                                                val playlistPage = YouTube.playlist(playlist.id).completed().getOrNull()
-                                                val fetchedSongs = playlistPage?.songs.orEmpty()
-
-                                                if (fetchedSongs.isEmpty() && newValue) {
-                                                    withContext(Dispatchers.Main) {
-                                                        if (snackbarHostState != null) {
-                                                            snackbarHostState.showSnackbar(context.getString(R.string.import_failed))
-                                                        } else {
-                                                            android.widget.Toast
-                                                                .makeText(
-                                                                    context,
-                                                                    context.getString(R.string.import_failed),
-                                                                    android.widget.Toast.LENGTH_SHORT,
-                                                                ).show()
-                                                        }
-                                                    }
-                                                    return@launch
-                                                }
-
-                                                database.transaction {
-                                                    val playlistEntity =
-                                                        PlaylistEntity(
-                                                            name = playlist.title,
-                                                            browseId = playlist.id,
-                                                            thumbnailUrl = playlist.thumbnail,
-                                                            isEditable = false,
-                                                            isAutoSync = newValue,
-                                                            remoteSongCount =
-                                                                playlist.songCountText?.let {
-                                                                    Regex("""\d+""").find(it)?.value?.toIntOrNull()
-                                                                },
-                                                            playEndpointParams = playlist.playEndpoint?.params,
-                                                            shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                                                            radioEndpointParams = playlist.radioEndpoint?.params,
-                                                        )
-                                                    insert(playlistEntity)
-                                                    fetchedSongs.forEach { song -> insert(song.toMediaMetadata()) }
-                                                    fetchedSongs
-                                                        .mapIndexed { index, song ->
-                                                            PlaylistSongMap(
-                                                                songId = song.id,
-                                                                playlistId = playlistEntity.id,
-                                                                position = index,
-                                                                setVideoId = song.setVideoId,
-                                                            )
-                                                        }.forEach(::insert)
-                                                }
-
-                                                if (newValue) {
-                                                    withContext(Dispatchers.Main) {
-                                                        if (snackbarHostState != null) {
-                                                            snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
-                                                        } else {
-                                                            android.widget.Toast
-                                                                .makeText(
-                                                                    context,
-                                                                    context.getString(R.string.playlist_synced),
-                                                                    android.widget.Toast.LENGTH_SHORT,
-                                                                ).show()
-                                                        }
-                                                    }
-                                                }
-                                            } else {
-                                                val existing = currentDbPlaylist.playlist
-                                                database.query {
-                                                    update(existing.copy(isAutoSync = newValue))
-                                                }
-
-                                                if (newValue) {
-                                                    syncUtils.syncAutoSyncPlaylists()
-                                                    withContext(Dispatchers.Main) {
-                                                        if (snackbarHostState != null) {
-                                                            snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
-                                                        } else {
-                                                            android.widget.Toast
-                                                                .makeText(
-                                                                    context,
-                                                                    context.getString(R.string.playlist_synced),
-                                                                    android.widget.Toast.LENGTH_SHORT,
-                                                                ).show()
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        } catch (e: Exception) {
-                                            e.printStackTrace()
-                                            withContext(Dispatchers.Main) {
-                                                val errorMsg =
-                                                    context.getString(R.string.import_failed) + ": ${e.message ?: "Unknown error"}"
-                                                if (snackbarHostState != null) {
-                                                    snackbarHostState.showSnackbar(errorMsg)
-                                                } else {
-                                                    android.widget.Toast
-                                                        .makeText(
-                                                            context,
-                                                            errorMsg,
-                                                            android.widget.Toast.LENGTH_SHORT,
-                                                        ).show()
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                            )
-                        },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     )
                 }

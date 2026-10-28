@@ -8,15 +8,9 @@
 package moe.rukamori.archivetune.ui.component
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +33,6 @@ import moe.rukamori.archivetune.viewmodels.CreatePlaylistViewModel
 fun CreatePlaylistDialog(
     onDismiss: () -> Unit,
     initialTextFieldValue: String? = null,
-    allowSyncing: Boolean = true,
     viewModel: CreatePlaylistViewModel = hiltViewModel(),
 ) {
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
@@ -52,14 +45,10 @@ fun CreatePlaylistDialog(
             }
         }
     val updateName = remember(viewModel) { viewModel::updateName }
-    val updateSyncRequested = remember(viewModel) { viewModel::updateSyncRequested }
     val submit = remember(viewModel) { viewModel::submit }
 
-    LaunchedEffect(initialTextFieldValue, allowSyncing, viewModel) {
-        viewModel.open(
-            initialName = initialTextFieldValue.orEmpty(),
-            allowSyncing = allowSyncing,
-        )
+    LaunchedEffect(initialTextFieldValue, viewModel) {
+        viewModel.open(initialName = initialTextFieldValue.orEmpty())
     }
 
     LaunchedEffect(viewModel) {
@@ -77,16 +66,11 @@ fun CreatePlaylistDialog(
                 data =
                     CreatePlaylistUiData(
                         name = initialTextFieldValue.orEmpty(),
-                        allowSyncing = allowSyncing,
-                        isSignedIn = false,
-                        isSyncEnabled = false,
-                        syncRequested = false,
                         isSubmitting = false,
                     ),
                 isLoading = true,
                 errorMessageResId = null,
                 onNameChange = updateName,
-                onSyncRequestedChange = updateSyncRequested,
                 onSubmit = submit,
                 onDismiss = dismiss,
             )
@@ -98,7 +82,6 @@ fun CreatePlaylistDialog(
                 isLoading = false,
                 errorMessageResId = null,
                 onNameChange = updateName,
-                onSyncRequestedChange = updateSyncRequested,
                 onSubmit = submit,
                 onDismiss = dismiss,
             )
@@ -109,16 +92,11 @@ fun CreatePlaylistDialog(
                 data =
                     CreatePlaylistUiData(
                         name = "",
-                        allowSyncing = allowSyncing,
-                        isSignedIn = false,
-                        isSyncEnabled = false,
-                        syncRequested = false,
                         isSubmitting = false,
                     ),
                 isLoading = false,
                 errorMessageResId = null,
                 onNameChange = updateName,
-                onSyncRequestedChange = updateSyncRequested,
                 onSubmit = submit,
                 onDismiss = dismiss,
             )
@@ -130,7 +108,6 @@ fun CreatePlaylistDialog(
                 isLoading = false,
                 errorMessageResId = state.messageResId,
                 onNameChange = updateName,
-                onSyncRequestedChange = updateSyncRequested,
                 onSubmit = submit,
                 onDismiss = dismiss,
             )
@@ -144,7 +121,6 @@ private fun CreatePlaylistDialogContent(
     isLoading: Boolean,
     @StringRes errorMessageResId: Int?,
     onNameChange: (String) -> Unit,
-    onSyncRequestedChange: (Boolean) -> Unit,
     onSubmit: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -162,13 +138,6 @@ private fun CreatePlaylistDialogContent(
         onDismiss = onDismiss,
         onDone = onDone,
         extraContent = {
-            if (data.allowSyncing) {
-                SyncPlaylistSection(
-                    data = data,
-                    enabled = !isLoading && !data.isSubmitting,
-                    onSyncRequestedChange = onSyncRequestedChange,
-                )
-            }
             if (errorMessageResId != null) {
                 Text(
                     text = stringResource(errorMessageResId),
@@ -181,64 +150,3 @@ private fun CreatePlaylistDialogContent(
     )
 }
 
-@Composable
-private fun SyncPlaylistSection(
-    data: CreatePlaylistUiData,
-    enabled: Boolean,
-    onSyncRequestedChange: (Boolean) -> Unit,
-) {
-    val syncDescriptionResId =
-        when {
-            !data.isSignedIn -> R.string.not_logged_in_youtube
-            !data.isSyncEnabled -> R.string.sync_disabled
-            else -> R.string.allows_for_sync_witch_youtube
-        }
-
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        shape = MaterialTheme.shapes.large,
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.sync),
-                contentDescription = null,
-                tint =
-                    if (data.syncRequested) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                modifier = Modifier.padding(top = 2.dp),
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-            ) {
-                Text(
-                    text = stringResource(R.string.sync_playlist),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = stringResource(syncDescriptionResId),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Switch(
-                checked = data.syncRequested,
-                onCheckedChange = onSyncRequestedChange,
-                enabled = enabled,
-            )
-        }
-    }
-}

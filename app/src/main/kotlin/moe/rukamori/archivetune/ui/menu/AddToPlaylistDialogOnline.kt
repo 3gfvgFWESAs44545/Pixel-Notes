@@ -70,7 +70,6 @@ import timber.log.Timber
 @Composable
 fun AddToPlaylistDialogOnline(
     isVisible: Boolean,
-    allowSyncing: Boolean = true,
     initialTextFieldValue: String? = null,
     songs: SnapshotStateList<Song>, // list of song ids. Songs should be inserted to database in this function.
     onDismiss: () -> Unit,
@@ -332,7 +331,6 @@ fun AddToPlaylistDialogOnline(
         CreatePlaylistDialog(
             onDismiss = { showCreatePlaylistDialog = false },
             initialTextFieldValue = initialTextFieldValue,
-            allowSyncing = allowSyncing,
         )
     }
 

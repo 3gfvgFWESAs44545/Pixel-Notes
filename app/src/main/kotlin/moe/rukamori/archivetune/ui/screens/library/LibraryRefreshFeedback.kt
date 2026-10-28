@@ -77,8 +77,6 @@ internal fun LibraryRefreshFeedbackEffect(
 ) {
     val errorMessage =
         when ((state as? LibraryRefreshState.Error)?.failure) {
-            LibrarySyncFailure.LoginRequired -> stringResource(R.string.not_logged_in_youtube)
-            LibrarySyncFailure.SyncDisabled -> stringResource(R.string.sync_disabled)
             LibrarySyncFailure.RequestFailed -> stringResource(R.string.library_sync_failed)
             null -> null
         }

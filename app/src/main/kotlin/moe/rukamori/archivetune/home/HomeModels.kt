@@ -14,7 +14,6 @@ import moe.rukamori.archivetune.constants.QuickPicks
 import moe.rukamori.archivetune.constants.QuickPicksDisplayMode
 import moe.rukamori.archivetune.db.entities.LocalItem
 import moe.rukamori.archivetune.db.entities.Song
-import moe.rukamori.archivetune.innertube.models.PlaylistItem
 import moe.rukamori.archivetune.innertube.pages.HomePage
 import moe.rukamori.archivetune.models.SimilarRecommendation
 
@@ -52,13 +51,10 @@ data class HomeUiState(
     val forgottenFavorites: ImmutableList<Song>,
     val keepListening: ImmutableList<LocalItem>,
     val similarRecommendations: ImmutableList<SimilarRecommendation>,
-    val accountPlaylists: ImmutableList<PlaylistItem>,
     val homePage: HomePage?,
     val remoteQuickPicks: HomePage.Section?,
     val communitySection: HomePage.Section?,
     val selectedChip: HomePage.Chip?,
-    val accountName: String,
-    val accountImageUrl: String?,
     val quickPicksMode: QuickPicks,
     val quickPicksDisplayMode: QuickPicksDisplayMode,
     val showCategoryChips: Boolean,

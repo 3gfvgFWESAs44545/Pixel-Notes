@@ -1701,50 +1701,6 @@ fun ForgottenFavoritesSection(
     }
 }
 
-/**
- * Account Playlists section - horizontal row of YouTube playlists
- */
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun AccountPlaylistsSection(
-    accountPlaylists: List<PlaylistItem>,
-    mediaMetadata: MediaMetadata?,
-    isPlaying: Boolean,
-    navController: NavController,
-    playerConnection: PlayerConnection,
-    menuState: MenuState,
-    haptic: HapticFeedback,
-    scope: CoroutineScope,
-    modifier: Modifier = Modifier,
-) {
-    val distinctPlaylists = remember(accountPlaylists) { accountPlaylists.distinctBy { it.id } }
-
-    LazyRow(
-        contentPadding =
-            WindowInsets.systemBars
-                .only(WindowInsetsSides.Horizontal)
-                .asPaddingValues(),
-        modifier = modifier,
-    ) {
-        items(
-            items = distinctPlaylists,
-            key = { it.id },
-            contentType = { "account_playlist" },
-        ) { item ->
-            YouTubeGridItemWrapper(
-                item = item,
-                mediaMetadata = mediaMetadata,
-                isPlaying = isPlaying,
-                navController = navController,
-                playerConnection = playerConnection,
-                menuState = menuState,
-                haptic = haptic,
-                scope = scope,
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SimilarRecommendationsSection(
@@ -2302,61 +2258,6 @@ private fun YouTubeGridItemWrapper(
                             }
                         },
                 ),
-    )
-}
-
-/**
- * Account playlist navigation title with image
- */
-@Composable
-fun AccountPlaylistsTitle(
-    accountName: String,
-    accountImageUrl: String?,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    HomeSectionHeader(
-        label = stringResource(R.string.your_youtube_playlists),
-        title = accountName.ifBlank { stringResource(R.string.account) },
-        thumbnail = {
-            if (accountImageUrl != null) {
-                val context = LocalContext.current
-                val avatarSizePx =
-                    with(LocalDensity.current) {
-                        ListThumbnailSize.roundToPx().coerceAtLeast(1)
-                    }
-                val imageRequest =
-                    remember(accountImageUrl, avatarSizePx) {
-                        ImageRequest
-                            .Builder(context)
-                            .data(accountImageUrl)
-                            .size(Size(avatarSizePx, avatarSizePx))
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .diskCacheKey(accountImageUrl)
-                            .crossfade(true)
-                            .build()
-                    }
-                AsyncImage(
-                    model = imageRequest,
-                    placeholder = painterResource(id = R.drawable.person),
-                    error = painterResource(id = R.drawable.person),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier =
-                        Modifier
-                            .size(ListThumbnailSize)
-                            .clip(CircleShape),
-                )
-            } else {
-                Icon(
-                    painter = painterResource(id = R.drawable.person),
-                    contentDescription = null,
-                    modifier = Modifier.size(ListThumbnailSize),
-                )
-            }
-        },
-        onClick = onClick,
-        modifier = modifier,
     )
 }
 

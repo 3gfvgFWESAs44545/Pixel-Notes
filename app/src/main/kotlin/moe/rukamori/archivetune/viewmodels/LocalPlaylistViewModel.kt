@@ -63,7 +63,6 @@ import moe.rukamori.archivetune.models.toMediaMetadata
 import moe.rukamori.archivetune.playlist.RemovePlaylistCoverUseCase
 import moe.rukamori.archivetune.playlist.UpdatePlaylistCoverUseCase
 import moe.rukamori.archivetune.utils.PlaylistSuggestionQueryBuilder
-import moe.rukamori.archivetune.utils.SyncUtils
 import moe.rukamori.archivetune.utils.dataStore
 import moe.rukamori.archivetune.utils.reportException
 import java.text.Collator
@@ -76,7 +75,6 @@ class LocalPlaylistViewModel
     constructor(
         @ApplicationContext private val context: Context,
         private val database: MusicDatabase,
-        private val syncUtils: SyncUtils,
         private val updatePlaylistCover: UpdatePlaylistCoverUseCase,
         private val removePlaylistCover: RemovePlaylistCoverUseCase,
         savedStateHandle: SavedStateHandle,
@@ -182,8 +180,6 @@ class LocalPlaylistViewModel
         private var currentSuggestionPage: PlaylistSuggestionPage? = null
         private val visitedSuggestionPages = mutableMapOf<Int, PlaylistSuggestion>()
 
-        private val _isRefreshing = MutableStateFlow(false)
-        val isRefreshing = _isRefreshing.asStateFlow()
 
         private val _coverState = MutableStateFlow<PlaylistCoverState>(PlaylistCoverState.Empty)
         val coverState = _coverState.asStateFlow()
@@ -217,22 +213,6 @@ class LocalPlaylistViewModel
                     playlist?.let {
                         loadPlaylistSuggestions()
                     }
-                }
-            }
-        }
-
-        fun refresh() {
-            if (_isRefreshing.value) return
-            _isRefreshing.value = true
-            viewModelScope.launch(Dispatchers.IO) {
-                try {
-                    val p = playlist.first() ?: return@launch
-                    val browseId = p.playlist.browseId ?: return@launch
-                    syncUtils.syncPlaylistNow(browseId = browseId, playlistId = playlistId)
-                } catch (e: Exception) {
-                    reportException(e)
-                } finally {
-                    _isRefreshing.value = false
                 }
             }
         }

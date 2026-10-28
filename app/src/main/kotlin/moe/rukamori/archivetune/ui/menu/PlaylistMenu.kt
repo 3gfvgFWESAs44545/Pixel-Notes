@@ -64,14 +64,11 @@ import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.LocalDatabase
 import moe.rukamori.archivetune.LocalDownloadUtil
 import moe.rukamori.archivetune.LocalPlayerConnection
-import moe.rukamori.archivetune.LocalSyncUtils
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.SpeedDialSongIdsKey
 import moe.rukamori.archivetune.db.entities.Playlist
 import moe.rukamori.archivetune.db.entities.PlaylistSong
 import moe.rukamori.archivetune.db.entities.Song
-import moe.rukamori.archivetune.extensions.isSyncEnabled
-import moe.rukamori.archivetune.extensions.isUserLoggedIn
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.playback.ExoDownloadService
@@ -96,22 +93,6 @@ import timber.log.Timber
 import java.time.LocalDateTime
 import kotlin.math.roundToInt
 
-@Immutable
-private data class PlaylistSyncProgressUi(
-    val completedSongs: Int,
-    val totalSongs: Int,
-) {
-    val percent: Int
-        get() =
-            if (totalSongs <= 0) {
-                0
-            } else {
-                (completedSongs.coerceIn(0, totalSongs).toFloat() / totalSongs.toFloat() * 100f)
-                    .roundToInt()
-                    .coerceIn(0, 100)
-            }
-}
-
 @Composable
 public fun PlaylistMenu(
     playlist: Playlist,
@@ -127,7 +108,6 @@ public fun PlaylistMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val syncUtils = LocalSyncUtils.current
     val dbPlaylist by database.playlist(playlist.id).collectAsState(initial = playlist)
     val (speedDialSongIds, onSpeedDialSongIdsChange) = rememberPreference(SpeedDialSongIdsKey, "")
     val speedDialPins = remember(speedDialSongIds) { parseSpeedDialPins(speedDialSongIds) }
@@ -155,126 +135,8 @@ public fun PlaylistMenu(
     var downloadState by remember {
         mutableIntStateOf(Download.STATE_STOPPED)
     }
-    var syncProgress by remember {
-        mutableStateOf<PlaylistSyncProgressUi?>(null)
-    }
 
     val editable: Boolean = playlist.playlist.isEditable == true
-
-    fun syncPlaylistToYouTube() {
-        coroutineScope.launch(Dispatchers.IO) {
-            var lastProgressPercent = -1
-            var lastProgressCompleted = -1
-
-            fun updateProgress(
-                completedSongs: Int,
-                totalSongs: Int,
-            ) {
-                val nextProgressPercent =
-                    if (totalSongs <= 0) {
-                        -1
-                    } else {
-                        (completedSongs.coerceIn(0, totalSongs).toFloat() / totalSongs.toFloat() * 100f)
-                            .roundToInt()
-                            .coerceIn(0, 100)
-                    }
-                val shouldUpdate =
-                    totalSongs <= 0 ||
-                        completedSongs == totalSongs ||
-                        nextProgressPercent != lastProgressPercent ||
-                        completedSongs - lastProgressCompleted >= 25
-
-                if (!shouldUpdate) return
-
-                lastProgressPercent = nextProgressPercent
-                lastProgressCompleted = completedSongs
-
-                coroutineScope.launch(Dispatchers.Main) {
-                    syncProgress =
-                        PlaylistSyncProgressUi(
-                            completedSongs = completedSongs,
-                            totalSongs = totalSongs,
-                        )
-                }
-            }
-
-            try {
-                if (!context.isSyncEnabled()) {
-                    withContext(Dispatchers.Main) {
-                        Toast
-                            .makeText(
-                                context,
-                                context.getString(
-                                    if (context.isUserLoggedIn()) {
-                                        R.string.sync_disabled
-                                    } else {
-                                        R.string.not_logged_in_youtube
-                                    },
-                                ),
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                    }
-                    return@launch
-                }
-
-                val browseId = playlist.playlist.browseId ?: YouTube.createPlaylist(playlist.playlist.name).getOrThrow()
-                if (playlist.playlist.browseId == null) {
-                    updateProgress(completedSongs = 0, totalSongs = songs.size)
-                    YouTube
-                        .addSongsToPlaylist(
-                            playlistId = browseId,
-                            videoIds = songs.map(Song::id),
-                            onProgress = ::updateProgress,
-                        ).getOrThrow()
-                    database.query {
-                        update(
-                            playlist.playlist.copy(
-                                browseId = browseId,
-                                lastUpdateTime = LocalDateTime.now(),
-                                remoteSongCount = songs.size,
-                            ),
-                        )
-                    }
-                } else {
-                    updateProgress(completedSongs = 0, totalSongs = 0)
-                    syncUtils.syncPlaylistNow(
-                        browseId = browseId,
-                        playlistId = playlist.id,
-                        propagateFailures = true,
-                    ) { completedSongs, totalSongs ->
-                        updateProgress(
-                            completedSongs = completedSongs,
-                            totalSongs = totalSongs,
-                        )
-                    }
-                }
-
-                withContext(Dispatchers.Main) {
-                    syncProgress = null
-                    Toast
-                        .makeText(
-                            context,
-                            context.getString(R.string.playlist_synced),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    onDismiss()
-                }
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to sync playlist ${playlist.playlist.name}")
-                withContext(Dispatchers.Main) {
-                    syncProgress = null
-                    Toast
-                        .makeText(
-                            context,
-                            context.getString(R.string.playlist_sync_failed, e.syncErrorDetail(context)),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                }
-            }
-        }
-    }
 
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
@@ -974,29 +836,4 @@ public fun PlaylistMenu(
             }
         }
     }
-
-    syncProgress?.let { progress ->
-        LoadingScreen(
-            isVisible = true,
-            value = progress.percent,
-            title = stringResource(R.string.sync_playlist),
-            stepText =
-                if (progress.totalSongs > 0) {
-                    stringResource(
-                        R.string.playlist_sync_progress_step,
-                        progress.completedSongs,
-                        progress.totalSongs,
-                    )
-                } else {
-                    stringResource(R.string.please_wait)
-                },
-            indeterminate = progress.totalSongs <= 0,
-        )
-    }
 }
-
-private fun Throwable.syncErrorDetail(context: android.content.Context): String =
-    localizedMessage
-        ?.takeIf(String::isNotBlank)
-        ?: javaClass.simpleName.takeIf(String::isNotBlank)
-        ?: context.getString(R.string.error_unknown)

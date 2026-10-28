@@ -449,7 +449,6 @@ fun BackupAndRestore(
 
     AddToPlaylistDialogOnline(
         isVisible = showChoosePlaylistDialogOnline,
-        allowSyncing = false,
         songs = importedSongs,
         onDismiss = { showChoosePlaylistDialogOnline = false },
         onProgressStart = { isProgressStarted = it },

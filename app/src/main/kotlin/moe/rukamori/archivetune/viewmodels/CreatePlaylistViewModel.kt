@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.playlist.CreatePlaylistUseCase
-import moe.rukamori.archivetune.playlist.GetCreatePlaylistOptionsUseCase
 import javax.inject.Inject
 
 sealed interface CreatePlaylistScreenState {
@@ -46,10 +45,6 @@ sealed interface CreatePlaylistScreenState {
 @Immutable
 data class CreatePlaylistUiData(
     val name: String,
-    val allowSyncing: Boolean,
-    val isSignedIn: Boolean,
-    val isSyncEnabled: Boolean,
-    val syncRequested: Boolean,
     val isSubmitting: Boolean,
 ) {
     val canSubmit: Boolean
@@ -64,7 +59,6 @@ sealed interface CreatePlaylistEvent {
 class CreatePlaylistViewModel
     @Inject
     constructor(
-        private val getOptions: GetCreatePlaylistOptionsUseCase,
         private val createPlaylist: CreatePlaylistUseCase,
     ) : ViewModel() {
         private val mutableScreenState =
@@ -74,85 +68,18 @@ class CreatePlaylistViewModel
         private val mutableEvents = MutableSharedFlow<CreatePlaylistEvent>(extraBufferCapacity = 1)
         val events: SharedFlow<CreatePlaylistEvent> = mutableEvents.asSharedFlow()
 
-        private var loadJob: Job? = null
         private var createJob: Job? = null
 
-        fun open(
-            initialName: String,
-            allowSyncing: Boolean,
-        ) {
+        fun open(initialName: String) {
             if (createJob?.isActive == true) return
-            loadJob?.cancel()
-            mutableScreenState.value = CreatePlaylistScreenState.Loading
-            loadJob =
-                viewModelScope.launch {
-                    val initialData =
-                        CreatePlaylistUiData(
-                            name = initialName,
-                            allowSyncing = allowSyncing,
-                            isSignedIn = false,
-                            isSyncEnabled = false,
-                            syncRequested = false,
-                            isSubmitting = false,
-                        )
-                    try {
-                        val options = getOptions()
-                        mutableScreenState.value =
-                            CreatePlaylistScreenState.Success(
-                                initialData.copy(
-                                    isSignedIn = options.isSignedIn,
-                                    isSyncEnabled = options.isSyncEnabled,
-                                ),
-                            )
-                    } catch (error: CancellationException) {
-                        throw error
-                    } catch (_: Exception) {
-                        mutableScreenState.value =
-                            CreatePlaylistScreenState.Error(
-                                data = initialData,
-                                messageResId = R.string.error_unknown,
-                            )
-                    }
-                }
+            mutableScreenState.value =
+                CreatePlaylistScreenState.Success(
+                    CreatePlaylistUiData(name = initialName, isSubmitting = false),
+                )
         }
 
         fun updateName(name: String) {
             updateData { data -> data.copy(name = name) }
-        }
-
-        fun updateSyncRequested(requested: Boolean) {
-            val data = currentData() ?: return
-            if (!requested) {
-                mutableScreenState.value =
-                    CreatePlaylistScreenState.Success(
-                        data.copy(syncRequested = false),
-                    )
-                return
-            }
-            if (!data.allowSyncing) return
-
-            mutableScreenState.value =
-                when {
-                    !data.isSignedIn -> {
-                        CreatePlaylistScreenState.Error(
-                            data = data.copy(syncRequested = false),
-                            messageResId = R.string.not_logged_in_youtube,
-                        )
-                    }
-
-                    !data.isSyncEnabled -> {
-                        CreatePlaylistScreenState.Error(
-                            data = data.copy(syncRequested = false),
-                            messageResId = R.string.sync_disabled,
-                        )
-                    }
-
-                    else -> {
-                        CreatePlaylistScreenState.Success(
-                            data.copy(syncRequested = true),
-                        )
-                    }
-                }
         }
 
         fun submit() {
@@ -167,10 +94,7 @@ class CreatePlaylistViewModel
             createJob =
                 viewModelScope.launch {
                     try {
-                        createPlaylist(
-                            name = data.name,
-                            syncRequested = data.syncRequested,
-                        )
+                        createPlaylist(data.name)
                         mutableScreenState.value =
                             CreatePlaylistScreenState.Success(
                                 data.copy(isSubmitting = false),
@@ -191,8 +115,6 @@ class CreatePlaylistViewModel
         }
 
         fun close() {
-            loadJob?.cancel()
-            loadJob = null
             if (createJob?.isActive != true) {
                 mutableScreenState.value = CreatePlaylistScreenState.Loading
             }

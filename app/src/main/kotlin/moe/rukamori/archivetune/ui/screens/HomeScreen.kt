@@ -491,32 +491,6 @@ private fun HomeContent(
                         }
                     }
 
-                    if (uiState.accountPlaylists.isNotEmpty()) {
-                        sectionSpacer("account_playlists")
-                        item(
-                            key = "home_account_playlists",
-                            contentType = "media_shelf",
-                        ) {
-                            Column(modifier = Modifier.animateItem()) {
-                                AccountPlaylistsTitle(
-                                    accountName = uiState.accountName,
-                                    accountImageUrl = uiState.accountImageUrl,
-                                    onClick = { navController.navigate("settings/khinsider_account") },
-                                )
-                                AccountPlaylistsSection(
-                                    accountPlaylists = uiState.accountPlaylists,
-                                    mediaMetadata = mediaMetadata,
-                                    isPlaying = isPlaying,
-                                    navController = navController,
-                                    playerConnection = playerConnection,
-                                    menuState = menuState,
-                                    haptic = haptic,
-                                    scope = scope,
-                                )
-                            }
-                        }
-                    }
-
                     if (uiState.forgottenFavorites.isNotEmpty()) {
                         sectionSpacer("forgotten_favorites")
                         item(
