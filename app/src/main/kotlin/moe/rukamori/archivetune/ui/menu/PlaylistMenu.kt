@@ -879,28 +879,7 @@ public fun PlaylistMenu(
 
             item {
                 MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
-                    ListItem(
-                        headlineContent = { Text(text = stringResource(R.string.sync_playlist)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.sync),
-                                contentDescription = null,
-                            )
-                        },
-                        modifier =
-                            Modifier.clickable {
-                                if (syncProgress == null) {
-                                    syncPlaylistToYouTube()
-                                }
-                            },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    )
-
-                    HorizontalDivider(
-                        modifier = dividerModifier,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
+                    // Pixel Notes: "Sync to YouTube" removed.
                     ListItem(
                         headlineContent = {
                             Text(

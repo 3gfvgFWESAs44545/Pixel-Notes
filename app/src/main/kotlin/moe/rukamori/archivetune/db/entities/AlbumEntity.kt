@@ -58,8 +58,6 @@ data class AlbumEntity(
                             .onSuccess { showKhinsiderToast(if (favorite) "Added to khinsider favourites" else "Removed from khinsider favourites") }
                             .onFailure { showKhinsiderToast("khinsider favourites: ${it.message ?: "sync failed"}") }
                     }
-                } else if (playlistId != null) {
-                    YouTube.likePlaylist(playlistId, bookmarkedAt == null)
                 }
                 this.cancel()
             }

@@ -80,14 +80,6 @@ data class PlaylistEntity(
             bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now(),
         )
 
-    fun toggleLike() =
-        localToggleLike().also {
-            if (isLocal) return@also
-            CoroutineScope(Dispatchers.IO).launch {
-                if (browseId != null) {
-                    YouTube.likePlaylist(browseId, bookmarkedAt == null)
-                }
-                this.cancel()
-            }
-        }
+    // Pixel Notes: saved on the phone only (no YouTube playlist likes).
+    fun toggleLike() = localToggleLike()
 }

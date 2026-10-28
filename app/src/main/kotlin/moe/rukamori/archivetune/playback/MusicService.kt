@@ -5899,6 +5899,8 @@ class MusicService :
         }
 
     private suspend fun registerRemotePlaybackHistory(mediaId: String): Boolean {
+        // Pixel Notes: khinsider plays are never reported to YouTube.
+        if (moe.rukamori.archivetune.innertube.khinsider.KhinsiderIds.isKhinsider(mediaId)) return false
         if (database
                 .song(mediaId)
                 .first()

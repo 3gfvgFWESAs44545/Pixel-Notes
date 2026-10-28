@@ -192,16 +192,7 @@ class App :
     }
 
     private fun initializeDeferredAsync() {
-        applicationScope.launch(Dispatchers.IO) {
-            try {
-                youtubeiStreamRepository.preWarm()
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (throwable: Throwable) {
-                Timber.tag("YoutubeiResolver").w(throwable, "youtubei.js runtime prewarm failed")
-            }
-        }
-
+        // Pixel Notes: no YouTube warm-up at launch; everything plays from khinsider.
         applicationScope.launch(Dispatchers.IO) {
             try {
                 val prefs = dataStore.data.first()
@@ -289,27 +280,7 @@ class App :
                     if (previousFingerprint != authState.fingerprint) {
                         YTPlayerUtils.clearPlaybackAuthCaches()
                         youtubeiStreamRepository.invalidateSessions()
-                        YTPlayerUtils.preWarmYoutubeiPoTokens(authState)
                     }
-                }
-        }
-
-        applicationScope.launch(Dispatchers.IO) {
-            dataStore.data
-                .map { it.toPlaybackAuthState().visitorData }
-                .distinctUntilChanged()
-                .collect { visitorData ->
-                    if (!visitorData.isNullOrBlank()) return@collect
-                    YouTube
-                        .visitorData()
-                        .onFailure {
-                            reportException(it)
-                        }.getOrNull()
-                        ?.also { newVisitorData ->
-                            dataStore.edit { settings ->
-                                settings[VisitorDataKey] = newVisitorData
-                            }
-                        }
                 }
         }
 

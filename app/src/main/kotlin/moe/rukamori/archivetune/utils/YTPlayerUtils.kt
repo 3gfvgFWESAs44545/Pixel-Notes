@@ -173,6 +173,7 @@ object YTPlayerUtils {
     }
 
     suspend fun recoverFromBadStreamPlayerResponse(videoId: String) {
+        if (KhinsiderIds.isKhinsider(videoId)) return
         BotGuardTokenGenerator.invalidateAll()
         val authState =
             YouTube

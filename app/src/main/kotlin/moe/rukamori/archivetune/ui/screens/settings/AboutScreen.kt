@@ -114,6 +114,10 @@ fun AboutScreen(
     val uriHandler = LocalUriHandler.current
     val scrollBehavior = appBarScrollBehavior()
 
+    LaunchedEffect(viewModel, archiveTuneContributors) {
+        if (archiveTuneContributors) viewModel.loadContributorsIfNeeded()
+    }
+
     LaunchedEffect(viewModel, uriHandler) {
         viewModel.effects.collect { effect ->
             when (effect) {

@@ -263,6 +263,11 @@ class AboutViewModel
         private var activeDialog = AboutDialog.NONE
 
         init {
+            updateState()
+        }
+
+        /** Pixel Notes: the contributor list is only fetched when its page is opened. */
+        fun loadContributorsIfNeeded() {
             loadContributors()
         }
 

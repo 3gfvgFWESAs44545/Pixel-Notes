@@ -701,6 +701,7 @@ object YouTube {
 
     suspend fun artistItems(endpoint: BrowseEndpoint): Result<ArtistItemsPage> =
         runCatching {
+            if (khinsiderMode) throw IllegalStateException("Artist pages are not available for khinsider content")
             val response = innerTube.browse(WEB_REMIX, endpoint.browseId, endpoint.params).body<BrowseResponse>()
             val sectionContents = response.artistItemsSectionContents()
             val gridRenderer = sectionContents.firstNotNullOfOrNull { it.findGridRenderer() }
@@ -775,6 +776,7 @@ object YouTube {
 
     suspend fun artistItemsContinuation(continuation: String): Result<ArtistItemsContinuationPage> =
         runCatching {
+            if (khinsiderMode) throw IllegalStateException("Artist pages are not available for khinsider content")
             val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<BrowseResponse>()
 
             when {
