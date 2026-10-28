@@ -73,10 +73,6 @@ internal class LoadWidgetInsightsUseCase
         private fun WidgetInsightsData.extractGenres(): List<String> {
             val textSignals =
                 buildList {
-                    topMixes.forEach { mix ->
-                        add(mix.title)
-                        add(mix.description)
-                    }
                     recentSongs.forEach { song ->
                         add(song.song.title)
                         add(song.album?.title.orEmpty())

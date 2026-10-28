@@ -76,8 +76,3 @@ data class SongEntity(
             likedDate = if (inLibrary == null) likedDate else null,
         )
 }
-
-data class LikedSongDate(
-    val id: String,
-    val likedDate: LocalDateTime?,
-)

@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.db.MusicDatabase
 import moe.rukamori.archivetune.db.entities.Artist
-import moe.rukamori.archivetune.db.entities.LibraryTopMixEntity
 import moe.rukamori.archivetune.db.entities.ListeningTotals
 import moe.rukamori.archivetune.db.entities.Song
 import moe.rukamori.archivetune.db.entities.SongWithStats
@@ -33,7 +32,6 @@ internal class WidgetInsightsRepository
                     topSongs = database.mostPlayedSongsStats(fromTimeStamp = fromMs, limit = 4, toTimeStamp = nowMs).first(),
                     recommendations = database.quickPicks(now = nowMs).first().take(6),
                     topArtists = database.mostPlayedArtists(fromTimeStamp = fromMs, limit = 6, toTimeStamp = nowMs).first(),
-                    topMixes = database.libraryTopMixes(limit = 4).first(),
                 )
             }
     }
@@ -44,5 +42,4 @@ internal data class WidgetInsightsData(
     val topSongs: List<SongWithStats>,
     val recommendations: List<Song>,
     val topArtists: List<Artist>,
-    val topMixes: List<LibraryTopMixEntity>,
 )
