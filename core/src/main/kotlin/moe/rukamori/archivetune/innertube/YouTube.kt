@@ -99,7 +99,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import moe.rukamori.archivetune.innertube.khinsider.KhinsiderBackend
 import moe.rukamori.archivetune.innertube.khinsider.KhinsiderIds
 import okhttp3.OkHttpClient
-import okhttp3.dnsoverhttps.DnsOverHttps
 import java.net.Proxy
 import kotlin.random.Random
 
@@ -188,31 +187,6 @@ object YouTube {
         set(value) {
             authState = authState.copy(poTokenPlayer = value)
         }
-    var proxy: Proxy?
-        get() = innerTube.proxy
-        set(value) {
-            innerTube.proxy = value
-        }
-    var proxyUsername: String?
-        get() = innerTube.proxyUsername
-        set(value) {
-            innerTube.proxyUsername = value
-        }
-    var proxyPassword: String?
-        get() = innerTube.proxyPassword
-        set(value) {
-            innerTube.proxyPassword = value
-        }
-    var dns: Dns
-        get() = innerTube.dns
-        set(value) {
-            innerTube.dns = value
-        }
-    var streamBypassProxy: Boolean = false
-    val streamProxy: Proxy?
-        get() = if (streamBypassProxy) null else proxy
-    val streamOkHttpProxy: Proxy
-        get() = streamProxy ?: Proxy.NO_PROXY
     var useLoginForBrowse: Boolean
         get() = innerTube.useLoginForBrowse
         set(value) {
@@ -220,15 +194,6 @@ object YouTube {
         }
 
     fun currentPlaybackAuthState(): PlaybackAuthState = authState
-
-    fun createDnsOverHttps(url: String): Dns {
-        val bootstrapClient = OkHttpClient.Builder().build()
-        return DnsOverHttps
-            .Builder()
-            .client(bootstrapClient)
-            .url(url.toHttpUrl())
-            .build()
-    }
 
     private fun resolvePlayerPoToken(
         client: YouTubeClient,

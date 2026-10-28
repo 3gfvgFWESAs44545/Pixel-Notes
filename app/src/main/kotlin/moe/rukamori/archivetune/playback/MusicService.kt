@@ -9,7 +9,6 @@
 
 package moe.rukamori.archivetune.playback
 
-import moe.rukamori.archivetune.innertube.khinsider.AppNetwork.followAppNetworkSettings
 import moe.rukamori.archivetune.innertube.khinsider.KhinsiderAccount
 import moe.rukamori.archivetune.innertube.khinsider.KhinsiderIds
 import android.app.ActivityManager
@@ -161,8 +160,6 @@ import moe.rukamori.archivetune.constants.HISTORY_DURATION_MIN
 import moe.rukamori.archivetune.constants.HideExplicitKey
 import moe.rukamori.archivetune.constants.HideVideoKey
 import moe.rukamori.archivetune.constants.HistoryDuration
-import moe.rukamori.archivetune.constants.ListenBrainzEnabledKey
-import moe.rukamori.archivetune.constants.ListenBrainzTokenKey
 import moe.rukamori.archivetune.constants.MaxSongCacheSizeKey
 import moe.rukamori.archivetune.constants.MediaSessionConstants.CommandToggleLike
 import moe.rukamori.archivetune.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -232,7 +229,6 @@ import moe.rukamori.archivetune.sponsorblock.SponsorBlockPlaybackController
 import moe.rukamori.archivetune.storage.StorageFolderKind
 import moe.rukamori.archivetune.storage.StorageLocationRepository
 import moe.rukamori.archivetune.together.TogetherPlaybackSync
-import moe.rukamori.archivetune.ui.screens.settings.ListenBrainzManager
 import moe.rukamori.archivetune.utils.CoilBitmapLoader
 import moe.rukamori.archivetune.utils.NetworkConnectivityObserver
 import moe.rukamori.archivetune.utils.StreamClientUtils
@@ -375,7 +371,6 @@ class MusicService :
         OkHttpClient
             .Builder()
             .addInterceptor(moe.rukamori.archivetune.innertube.khinsider.KhinsiderTraffic.interceptor())
-            .followAppNetworkSettings(forMedia = true)
             .followRedirects(true)
             .followSslRedirects(true)
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -6382,45 +6377,6 @@ class MusicService :
 
         if (events.containsAny(EVENT_TIMELINE_CHANGED, EVENT_POSITION_DISCONTINUITY)) {
             currentMediaMetadata.value = player.currentMetadata
-            val currentMediaId = player.currentMediaItem?.mediaId
-            val currentMetadata = player.currentMetadata
-            val currentDuration = player.duration
-            val currentPosition = player.currentPosition
-            scope.launch {
-                try {
-                    if (currentMetadata?.isPodcast == true) return@launch
-                    val song = if (currentMediaId != null) withContext(Dispatchers.IO) { database.song(currentMediaId).first() } else null
-                    val finalSong =
-                        resolvePresenceSong(
-                            dbSong = song,
-                            mediaMetadata = currentMetadata,
-                            durationMs = currentDuration,
-                        ) ?: return@launch
-                    try {
-                        val lbEnabled = dataStore.get(ListenBrainzEnabledKey, false)
-                        val lbToken = dataStore.get(ListenBrainzTokenKey, "")
-                        val historyPaused = dataStore.get(PauseListenHistoryKey, false)
-                        if (lbEnabled && !lbToken.isNullOrBlank() && !historyPaused) {
-                            scope.launch(Dispatchers.IO) {
-                                try {
-                                    ListenBrainzManager.submitPlayingNow(
-                                        this@MusicService,
-                                        lbToken,
-                                        finalSong,
-                                        currentPosition,
-                                    )
-                                } catch (ie: Exception) {
-                                    Timber.tag("MusicService").v(ie, "ListenBrainz playing_now submit failed on transition")
-                                }
-                            }
-                        }
-
-                    } catch (_: Exception) {
-                    }
-                } catch (e: Exception) {
-                    Timber.tag("MusicService").v(e, "timeline/position follow-up work failed")
-                }
-            }
         }
         if (events.contains(EVENT_TIMELINE_CHANGED) && !isCrossfading) {
             scheduleCrossfade()
@@ -6436,53 +6392,6 @@ class MusicService :
         ) {
             if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
                 currentMediaMetadata.value = player.currentMetadata
-            }
-            // Capture player state on Main thread
-            val currentMediaId = player.currentMediaItem?.mediaId
-            val currentMetadata = player.currentMetadata
-            val currentPosition = player.currentPosition
-            val currentDuration = player.duration
-            val isPlaying = player.isPlaying
-
-            scope.launch {
-                try {
-                    if (currentMetadata?.isPodcast == true) return@launch
-                    val song =
-                        if (currentMediaId !=
-                            null
-                        ) {
-                            withContext(Dispatchers.IO) { database.song(currentMediaId).first() }
-                        } else {
-                            null
-                        }
-                    val finalSong =
-                        resolvePresenceSong(
-                            dbSong = song,
-                            mediaMetadata = currentMetadata,
-                            durationMs = currentDuration,
-                        ) ?: return@launch
-                    try {
-                        val lbEnabled = withContext(Dispatchers.IO) { dataStore.get(ListenBrainzEnabledKey, false) }
-                        val lbToken = withContext(Dispatchers.IO) { dataStore.get(ListenBrainzTokenKey, "") }
-                        val historyPaused = withContext(Dispatchers.IO) { dataStore.get(PauseListenHistoryKey, false) }
-                        if (lbEnabled && !lbToken.isNullOrBlank() && !historyPaused) {
-                            scope.launch(Dispatchers.IO) {
-                                try {
-                                    ListenBrainzManager.submitPlayingNow(this@MusicService, lbToken, finalSong, currentPosition)
-                                } catch (ie: Exception) {
-                                    Timber
-                                        .tag(
-                                            "MusicService",
-                                        ).v(ie, "ListenBrainz playing_now submit failed for isPlaying/mediaTransition")
-                                }
-                            }
-                        }
-
-                    } catch (_: Exception) {
-                    }
-                } catch (e: Exception) {
-                    Timber.tag("MusicService").v(e, "isPlaying/mediaTransition follow-up work failed")
-                }
             }
         }
 
@@ -7282,155 +7191,10 @@ class MusicService :
                 }
             }
 
-            if (fallbackMetadata?.isPodcast != true) {
-                ioScope.launch {
-                    try {
-                        val song =
-                            database.song(mediaId).first()
-                                ?: return@launch
-                        if (song.song.isPodcast) return@launch
-
-                        val lbEnabled = dataStore.get(ListenBrainzEnabledKey, false)
-                        val lbToken = dataStore.get(ListenBrainzTokenKey, "")
-                        val historyPaused = dataStore.get(PauseListenHistoryKey, false)
-                        if (lbEnabled && !lbToken.isNullOrBlank() && !historyPaused) {
-                            val endMs = System.currentTimeMillis()
-                            val startMs = endMs - playbackStats.totalPlayTimeMs
-                            try {
-                                ListenBrainzManager.submitFinished(this@MusicService, lbToken, song, startMs, endMs)
-                            } catch (ie: Exception) {
-                                Timber.tag("MusicService").v(ie, "ListenBrainz finished submit failed")
-                            }
-                        }
-                    } catch (_: Exception) {
-                    }
-                }
-            }
         }
     }
 
-    private fun currentPresenceSong(): Song? =
-        resolvePresenceSong(
-            dbSong = currentSong.value,
-            mediaMetadata = player.currentMetadata,
-            durationMs = player.duration,
-        )
-
-    private fun resolvePresenceSong(
-        dbSong: Song?,
-        mediaMetadata: MediaMetadata?,
-        durationMs: Long,
-    ): Song? {
-        if (mediaMetadata?.isPodcast == true || dbSong?.song?.isPodcast == true) return null
-        val metadataSong = mediaMetadata?.let { createTransientSongFromMedia(it) }
-        val song =
-            when {
-                dbSong == null -> metadataSong
-                metadataSong == null -> dbSong
-                else -> dbSong.withPresenceMetadata(metadataSong)
-            }
-
-        return song.withResolvedPresenceDuration(durationMs)
-    }
-
-    private fun Song.withPresenceMetadata(metadataSong: Song): Song {
-        val resolvedArtists =
-            metadataSong.artists
-                .takeIf { metadataArtists ->
-                    metadataArtists.any { it.hasRemotePresenceId() }
-                }?.map { metadataArtist ->
-                    val persistedArtist =
-                        artists.firstOrNull { artist ->
-                            artist.id == metadataArtist.id || artist.channelId == metadataArtist.id
-                        }
-                    metadataArtist.copy(
-                        thumbnailUrl = metadataArtist.thumbnailUrl ?: persistedArtist?.thumbnailUrl,
-                        channelId = metadataArtist.channelId ?: persistedArtist?.channelId,
-                    )
-                } ?: artists
-
-        return copy(
-            song =
-                song.copy(
-                    thumbnailUrl = song.thumbnailUrl ?: metadataSong.song.thumbnailUrl,
-                    albumId = song.albumId ?: metadataSong.song.albumId,
-                    albumName = song.albumName ?: metadataSong.song.albumName,
-                ),
-            artists = resolvedArtists,
-            album = album ?: metadataSong.album,
-        )
-    }
-
-    private fun Song?.withResolvedPresenceDuration(durationMs: Long): Song? {
-        val song = this ?: return null
-        if (song.song.duration > 0 || durationMs <= 0) return song
-        val durationSeconds =
-            (durationMs / 1000L)
-                .coerceAtLeast(1L)
-                .coerceAtMost(Int.MAX_VALUE.toLong())
-                .toInt()
-        return song.copy(song = song.song.copy(duration = durationSeconds))
-    }
-
-    private fun ArtistEntity.hasRemotePresenceId(): Boolean = channelId.isRemotePresenceId() || id.isRemotePresenceId()
-
-    private fun String?.isRemotePresenceId(): Boolean {
-        val id = this?.trim()?.takeIf { it.isNotBlank() } ?: return false
-        return !id.isLocalMediaId() &&
-            !id.startsWith("LOCAL_ARTIST_") &&
-            !id.startsWith("LA") &&
-            !id.contains("privately_owned_artist", ignoreCase = true)
-    }
-
     // Create a transient Song object from current Player MediaMetadata when the DB doesn't have it.
-    private fun createTransientSongFromMedia(media: MediaMetadata): Song {
-        val songEntity =
-            SongEntity(
-                id = media.id,
-                title = media.title,
-                duration = media.duration,
-                thumbnailUrl = media.thumbnailUrl,
-                albumId = media.album?.id,
-                albumName = media.album?.title,
-                explicit = media.explicit,
-                isMusicVideo = media.isMusicVideo,
-                isPodcast = media.isPodcast,
-                isLocal = media.id.isLocalMediaId(),
-            )
-
-        val artists =
-            media.artists.map { artist ->
-                ArtistEntity(
-                    id = artist.id ?: "LA_unknown_${artist.name}",
-                    name = artist.name,
-                    thumbnailUrl = artist.thumbnailUrl,
-                    isLocal = artist.id == null || artist.id.isLocalMediaId(),
-                )
-            }
-
-        val album =
-            media.album?.let { alb ->
-                AlbumEntity(
-                    id = alb.id,
-                    playlistId = null,
-                    title = alb.title,
-                    year = null,
-                    thumbnailUrl = media.thumbnailUrl,
-                    themeColor = null,
-                    songCount = 1,
-                    duration = media.duration,
-                    isLocal = media.id.isLocalMediaId(),
-                )
-            }
-
-        return Song(
-            song = songEntity,
-            artists = artists,
-            album = album,
-            format = null,
-        )
-    }
-
     private inline fun <reified T> readPersistentObject(fileName: String): T? {
         val persistentFile = filesDir.resolve(fileName)
         if (!persistentFile.exists() || !persistentFile.isFile) return null

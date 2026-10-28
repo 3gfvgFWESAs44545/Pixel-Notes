@@ -46,15 +46,7 @@ interface MusicBackend {
     var webClientPoTokenEnabled: Boolean
     var poTokenGvs: String?
     var poTokenPlayer: String?
-    var proxy: Proxy?
-    var proxyUsername: String?
-    var proxyPassword: String?
-    var dns: Dns
-    var streamBypassProxy: Boolean
     var useLoginForBrowse: Boolean
-
-    val streamProxy: Proxy?
-    val streamOkHttpProxy: Proxy
 
     fun notifyHistorySynced()
 
@@ -63,8 +55,6 @@ interface MusicBackend {
     fun hasLoginCookie(): Boolean
 
     fun hasPlaybackLoginContext(): Boolean
-
-    fun createDnsOverHttps(url: String): Dns
 
     // Search
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions>

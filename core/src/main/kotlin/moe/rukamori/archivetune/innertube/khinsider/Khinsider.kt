@@ -9,7 +9,6 @@
 
 package moe.rukamori.archivetune.innertube.khinsider
 
-import moe.rukamori.archivetune.innertube.khinsider.AppNetwork.followAppNetworkSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -52,7 +51,6 @@ object Khinsider {
             .readTimeout(30, TimeUnit.SECONDS)
             .followRedirects(true)
             .addInterceptor(KhinsiderTraffic.interceptor())
-            .followAppNetworkSettings()
             .build()
     }
 

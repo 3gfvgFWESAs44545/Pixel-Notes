@@ -1,7 +1,7 @@
 /*
  * Pixel Notes — password protection for the sign-in part of a backup.
  *
- * Account details (khinsider sign-in, ListenBrainz token, proxy login) are written to their own
+ * Account details (the khinsider sign-in) are written to their own
  * entry in the backup, encrypted with AES-256-GCM. The key comes from the user's password via
  * PBKDF2-HMAC-SHA256 with a random salt, so the file is useless without the password.
  * GPL-3.0 License

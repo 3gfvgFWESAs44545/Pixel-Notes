@@ -78,19 +78,17 @@ object CanvasArtworkPlaybackCache {
         }
 
     private val directClient: OkHttpClient by lazy {
-        canvasClient(proxy = null)
+        canvasClient()
     }
 
     private val streamClient: OkHttpClient by lazy {
-        canvasClient(proxy = YouTube.streamOkHttpProxy)
+        canvasClient()
     }
 
-    private fun canvasClient(proxy: Proxy?): OkHttpClient {
+    private fun canvasClient(): OkHttpClient {
         return OkHttpClient
             .Builder()
-            .apply {
-                if (proxy != null) this.proxy(proxy)
-            }.connectTimeout(12, TimeUnit.SECONDS)
+            .connectTimeout(12, TimeUnit.SECONDS)
             .readTimeout(45, TimeUnit.SECONDS)
             .callTimeout(3, TimeUnit.MINUTES)
             .addInterceptor { chain ->

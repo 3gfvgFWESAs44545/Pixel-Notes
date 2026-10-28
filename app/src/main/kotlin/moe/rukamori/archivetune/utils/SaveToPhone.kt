@@ -10,7 +10,6 @@
 
 package moe.rukamori.archivetune.utils
 
-import moe.rukamori.archivetune.innertube.khinsider.AppNetwork.followAppNetworkSettings
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -80,7 +79,6 @@ object SaveToPhone {
             .readTimeout(60, TimeUnit.SECONDS)
             .followRedirects(true)
             .addInterceptor(KhinsiderTraffic.interceptor())
-            .followAppNetworkSettings(forMedia = true)
             .build()
     }
 

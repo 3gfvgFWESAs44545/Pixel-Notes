@@ -605,7 +605,7 @@
     <string name="backup_category_settings">App Settings</string>
     <string name="backup_category_settings_desc">Appearance, playback &amp; preferences</string>
     <string name="backup_category_account">Account Details</string>
-    <string name="backup_category_account_desc">khinsider sign-in, ListenBrainz &amp; proxy logins, locked with a password</string>
+    <string name="backup_category_account_desc">Your khinsider sign-in, locked with a password</string>
     <string name="backup_category_downloads">Re-download offline songs</string>
     <string name="backup_category_downloads_desc">Will be downloaded again on restore</string>
     <string name="internal_service">Internal Service</string>

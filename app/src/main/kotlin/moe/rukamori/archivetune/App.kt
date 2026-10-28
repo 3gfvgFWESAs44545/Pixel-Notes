@@ -7,7 +7,6 @@
 
 package moe.rukamori.archivetune
 
-import moe.rukamori.archivetune.innertube.khinsider.AppNetwork.followAppNetworkSettings
 import moe.rukamori.archivetune.constants.KhinsiderCookieKey
 import moe.rukamori.archivetune.constants.KhinsiderSyncFavoritesKey
 import moe.rukamori.archivetune.constants.KhinsiderSyncHistoryKey
@@ -58,7 +57,6 @@ import moe.rukamori.archivetune.ui.theme.ThemeSeedPalette
 import moe.rukamori.archivetune.ui.theme.ThemeSeedPaletteCodec
 import moe.rukamori.archivetune.utils.PlaylistCoverInterceptor
 import moe.rukamori.archivetune.utils.PreferenceStore
-import moe.rukamori.archivetune.utils.ProxyUtils
 import moe.rukamori.archivetune.utils.YTPlayerUtils
 import moe.rukamori.archivetune.utils.clearPlaybackAuthSession
 import moe.rukamori.archivetune.utils.clearPlaybackWebAuthSession
@@ -215,16 +213,6 @@ class App :
                     YouTube.locale = YouTube.locale.copy(hl = lang)
                 }
 
-                ProxyUtils.applyYouTubeProxy(
-                    enabled = prefs[ProxyEnabledKey] == true,
-                    type = prefs[ProxyTypeKey].toEnum(defaultValue = Proxy.Type.HTTP),
-                    host = prefs[ProxyHostKey],
-                    port = prefs[ProxyPortKey],
-                    username = prefs[ProxyUsernameKey],
-                    password = prefs[ProxyPasswordKey],
-                )
-                YouTube.streamBypassProxy = YouTube.proxy != null && prefs[StreamBypassProxyKey] == true
-
                 if (prefs[UseLoginForBrowse] != false) {
                     YouTube.useLoginForBrowse = true
                 }
@@ -252,36 +240,20 @@ class App :
             }
         }
 
+        // Pixel Notes: proxy, DNS over HTTPS and ListenBrainz were removed. Clear any values
+        // saved by older versions so passwords and tokens don't linger on the phone.
         applicationScope.launch(Dispatchers.IO) {
-            dataStore.data
-                .map {
-                    Triple(
-                        it[EnableDnsOverHttpsKey] ?: false,
-                        it[DnsOverHttpsProviderKey] ?: "Cloudflare",
-                        it[stringPreferencesKey("customDnsUrl")] ?: "https://",
+            runCatching {
+                val removedKeys =
+                    setOf(
+                        "proxyEnabled", "proxyType", "proxyHost", "proxyPort", "proxyUsername", "proxyPassword",
+                        "streamBypassProxy", "enableDnsOverHttps", "dnsOverHttpsProvider", "customDnsUrl",
+                        "listenbrainz_enabled", "listenbrainz_token",
                     )
-                }.distinctUntilChanged()
-                .collect { (enabled, provider, customUrl) ->
-                    if (enabled) {
-                        val dnsProviderUrls =
-                            mapOf(
-                                "Google" to "https://dns.google/dns-query",
-                                "Cloudflare" to "https://cloudflare-dns.com/dns-query",
-                                "AdGuard" to "https://dns.adguard.com/dns-query",
-                                "Quad9" to "https://dns.quad9.net/dns-query",
-                            )
-                        val url = if (provider == "Custom") customUrl else dnsProviderUrls[provider]
-                        if (!url.isNullOrBlank() && url.startsWith("https://")) {
-                            runCatching {
-                                YouTube.dns = YouTube.createDnsOverHttps(url)
-                            }
-                        } else {
-                            YouTube.dns = Dns.SYSTEM
-                        }
-                    } else {
-                        YouTube.dns = Dns.SYSTEM
-                    }
+                dataStore.edit { prefs ->
+                    prefs.asMap().keys.filter { it.name in removedKeys }.forEach { prefs.remove(it) }
                 }
+            }
         }
 
         // Pixel Notes: optional khinsider account settings.
@@ -430,7 +402,6 @@ class App :
                             okhttp3.OkHttpClient
                                 .Builder()
                                 .addInterceptor(moe.rukamori.archivetune.innertube.khinsider.KhinsiderTraffic.interceptor())
-                                .followAppNetworkSettings()
                                 .build()
                         },
                     ),

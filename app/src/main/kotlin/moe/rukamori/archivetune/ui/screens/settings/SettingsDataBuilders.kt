@@ -82,15 +82,6 @@ fun buildSettingsGroups(
             accentColor = MaterialTheme.colorScheme.primary,
             onClick = { navController.navigate("settings/privacy") },
         )
-    val integration =
-        SettingsItem(
-            key = "integration",
-            icon = painterResource(R.drawable.auto_awesome),
-            title = stringResource(R.string.integration),
-            subtitle = stringResource(R.string.settings_integration_subtitle),
-            accentColor = MaterialTheme.colorScheme.secondary,
-            onClick = { navController.navigate("settings/integration") },
-        )
     val androidAuto =
         SettingsItem(
             key = "android_auto",
@@ -99,15 +90,6 @@ fun buildSettingsGroups(
             subtitle = stringResource(R.string.android_auto_settings_subtitle),
             accentColor = MaterialTheme.colorScheme.primary,
             onClick = { navController.navigate("settings/android_auto") },
-        )
-    val internet =
-        SettingsItem(
-            key = "internet",
-            icon = painterResource(R.drawable.wifi_proxy),
-            title = stringResource(R.string.internet),
-            subtitle = stringResource(R.string.settings_internet_subtitle),
-            accentColor = MaterialTheme.colorScheme.tertiary,
-            onClick = { navController.navigate("settings/internet") },
         )
     val storage =
         SettingsItem(
@@ -209,11 +191,7 @@ fun buildSettingsGroups(
         ),
         SettingsGroup(
             title = stringResource(R.string.settings_section_player_content),
-            items = listOf(appearance, playback, behavior), // Pixel Notes: Content menu removed; its two useful settings are in Appearance
-        ),
-        SettingsGroup(
-            title = "Connections",
-            items = listOf(androidAuto, integration, internet),
+            items = listOf(appearance, playback, behavior, androidAuto),
         ),
         SettingsGroup(
             title = stringResource(R.string.storage),

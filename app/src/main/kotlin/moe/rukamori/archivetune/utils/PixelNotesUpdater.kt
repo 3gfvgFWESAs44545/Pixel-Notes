@@ -6,7 +6,6 @@
 
 package moe.rukamori.archivetune.utils
 
-import moe.rukamori.archivetune.innertube.khinsider.AppNetwork.followAppNetworkSettings
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -59,7 +58,6 @@ object PixelNotesUpdater {
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .followRedirects(true)
-            .followAppNetworkSettings()
             .build()
     }
 

@@ -7,7 +7,6 @@
 
 package moe.rukamori.archivetune.playback
 
-import moe.rukamori.archivetune.innertube.khinsider.AppNetwork.followAppNetworkSettings
 import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
@@ -103,7 +102,6 @@ class DownloadUtil
             OkHttpClient
                 .Builder()
                 .addInterceptor(moe.rukamori.archivetune.innertube.khinsider.KhinsiderTraffic.interceptor())
-                .followAppNetworkSettings(forMedia = true)
                 .followRedirects(true)
                 .followSslRedirects(true)
                 .retryOnConnectionFailure(true)

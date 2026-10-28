@@ -40,10 +40,10 @@ class YoutubeiStreamRepository
                 diagnostics = { message -> Timber.tag("YoutubeiResolver").d(message) },
             ) {
                 YoutubeiNetworkConfiguration(
-                    proxy = YouTube.proxy,
-                    proxyUsername = YouTube.proxyUsername,
-                    proxyPassword = YouTube.proxyPassword,
-                    dns = YouTube.dns,
+                    proxy = null,
+                    proxyUsername = null,
+                    proxyPassword = null,
+                    dns = okhttp3.Dns.SYSTEM,
                     interceptors = listOf(NetworkGatekeeper),
                 )
             }
@@ -158,7 +158,7 @@ class YoutubeiStreamRepository
                 }
             Timber.tag("YoutubeiResolver").d(
                 "Stream contract signedIn=%s format=%d tokenBinding=%s nPresent=%s nError=%s " +
-                    "signaturePresent=%s userAgentPresent=%s extractionProxy=%s streamProxy=%s",
+                    "signaturePresent=%s userAgentPresent=%s",
                 authState.hasLoginCookie,
                 resolved.formatId,
                 tokenBinding,
@@ -167,8 +167,6 @@ class YoutubeiStreamRepository
                 !streamUrl?.queryParameter("sig").isNullOrBlank() ||
                     !streamUrl?.queryParameter("signature").isNullOrBlank(),
                 resolved.requestHeaders.any { (name, value) -> name.equals("User-Agent", ignoreCase = true) && value.isNotBlank() },
-                YouTube.proxy?.type()?.name ?: "DIRECT",
-                YouTube.streamOkHttpProxy.type().name,
             )
             return ResolvedAudioStream(
                 url = resolved.url,

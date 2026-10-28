@@ -16,7 +16,6 @@
 
 package moe.rukamori.archivetune.utils
 
-import moe.rukamori.archivetune.innertube.khinsider.AppNetwork.followAppNetworkSettings
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -189,7 +188,6 @@ object LikedCoverStore {
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .addInterceptor(KhinsiderTraffic.interceptor(TrafficCategory.LIKED_COVERS))
-            .followAppNetworkSettings()
             .build()
     }
 

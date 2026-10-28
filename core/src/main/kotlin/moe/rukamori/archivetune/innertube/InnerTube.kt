@@ -82,33 +82,6 @@ class InnerTube {
             authState = authState.copy(cookie = value).normalized()
         }
 
-    var proxy: Proxy? = null
-        set(value) {
-            field = value
-            httpClient.close()
-            httpClient = createClient()
-        }
-
-    var proxyUsername: String? = null
-        set(value) {
-            field = value
-            httpClient.close()
-            httpClient = createClient()
-        }
-
-    var proxyPassword: String? = null
-        set(value) {
-            field = value
-            httpClient.close()
-            httpClient = createClient()
-        }
-
-    var dns: Dns = Dns.SYSTEM
-        set(value) {
-            field = value
-            httpClient.close()
-            httpClient = createClient()
-        }
 
     var useLoginForBrowse: Boolean = false
 
@@ -147,21 +120,7 @@ class InnerTube {
             engine {
                 config {
                     addInterceptor(NetworkGatekeeper)
-                    dns(this@InnerTube.dns)
-                    if (this@InnerTube.proxy == null) {
-                        proxy(Proxy.NO_PROXY)
-                    } else if (this@InnerTube.proxy != null && !proxyUsername.isNullOrBlank() && !proxyPassword.isNullOrBlank()) {
-                        proxyAuthenticator { _, response ->
-                            val credential = okhttp3.Credentials.basic(proxyUsername!!, proxyPassword!!)
-                            response.request
-                                .newBuilder()
-                                .header("Proxy-Authorization", credential)
-                                .build()
-                        }
-                    }
-                }
-                if (this@InnerTube.proxy != null) {
-                    proxy = this@InnerTube.proxy
+                    proxy(Proxy.NO_PROXY)
                 }
             }
 

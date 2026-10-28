@@ -67,8 +67,6 @@ import moe.rukamori.archivetune.ui.screens.settings.CustomizeBackground
 import moe.rukamori.archivetune.ui.screens.settings.DebugSettings
 import moe.rukamori.archivetune.ui.screens.settings.HiddenPlaylistsScreen
 import moe.rukamori.archivetune.ui.screens.settings.IconScreen
-import moe.rukamori.archivetune.ui.screens.settings.IntegrationScreen
-import moe.rukamori.archivetune.ui.screens.settings.InternetSettings
 import moe.rukamori.archivetune.ui.screens.settings.LogcatScreen
 import moe.rukamori.archivetune.ui.screens.settings.PalettePickerScreen
 import moe.rukamori.archivetune.ui.screens.settings.PlayerSettings
@@ -440,9 +438,6 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/appearance/theme_creator") {
         ThemeCreatorScreen(navController)
     }
-    composable("settings/internet") {
-        InternetSettings(navController)
-    }
     composable("settings/player") {
         PlayerSettings(navController)
     }
@@ -460,9 +455,6 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/backup_restore") {
         BackupAndRestore(navController)
-    }
-    composable("settings/integration") {
-        IntegrationScreen(navController)
     }
     composable("settings/misc") {
         DebugSettings(navController)

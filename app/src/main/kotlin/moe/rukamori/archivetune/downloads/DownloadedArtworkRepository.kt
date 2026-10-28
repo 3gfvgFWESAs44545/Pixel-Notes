@@ -7,7 +7,6 @@
 
 package moe.rukamori.archivetune.downloads
 
-import moe.rukamori.archivetune.innertube.khinsider.AppNetwork.followAppNetworkSettings
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.AtomicFile
@@ -63,7 +62,6 @@ class DownloadedArtworkRepository
         private val httpClient: OkHttpClient by lazy {
             OkHttpClient
                 .Builder()
-                .followAppNetworkSettings(forMedia = true)
                 .followRedirects(true)
                 .followSslRedirects(true)
                 .connectTimeout(NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)

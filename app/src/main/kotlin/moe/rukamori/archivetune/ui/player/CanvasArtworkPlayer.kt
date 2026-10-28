@@ -90,10 +90,8 @@ internal fun CanvasArtworkPlayer(
 
     val okHttpClient =
         remember(provider) {
-            val streamProxy = YouTube.streamOkHttpProxy
             OkHttpClient
                 .Builder()
-                .proxySelector(CanvasPlaybackProxySelector(streamProxy))
                 .addInterceptor { chain -> CanvasNetworkAccess.intercept(chain, provider) }
                 .addInterceptor { chain ->
                     val request = chain.request()
@@ -357,18 +355,6 @@ private fun ExoPlayer.setCanvasPlayback(isPlaying: Boolean) {
         play()
     } else {
         pause()
-    }
-}
-
-private class CanvasPlaybackProxySelector(streamProxy: Proxy) : ProxySelector() {
-    private val directRoute = listOf(Proxy.NO_PROXY)
-    private val streamRoute = listOf(streamProxy)
-
-    override fun select(uri: URI): List<Proxy> =
-        if (uri.host.orEmpty().isYouTubeMediaHost()) streamRoute else directRoute
-
-    override fun connectFailed(uri: URI, socketAddress: SocketAddress, error: IOException) {
-        Timber.tag(CanvasPlaybackLogTag).w(error, "Canvas proxy connection failed for %s", uri.host)
     }
 }
 

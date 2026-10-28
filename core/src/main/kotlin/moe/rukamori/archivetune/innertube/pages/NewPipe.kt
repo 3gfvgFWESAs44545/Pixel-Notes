@@ -26,13 +26,11 @@ import java.io.IOException
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
-private class NewPipeDownloaderImpl(
-    proxy: Proxy?,
-) : Downloader() {
+private class NewPipeDownloaderImpl : Downloader() {
     private val client =
         OkHttpClient
             .Builder()
-            .proxy(proxy ?: Proxy.NO_PROXY)
+            .proxy(Proxy.NO_PROXY)
             .retryOnConnectionFailure(true)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -88,7 +86,7 @@ private class NewPipeDownloaderImpl(
 
 object NewPipeUtils {
     init {
-        NewPipe.init(NewPipeDownloaderImpl(YouTube.streamProxy))
+        NewPipe.init(NewPipeDownloaderImpl())
     }
 
     suspend fun getSignatureTimestamp(videoId: String): Result<Int> =
