@@ -1511,6 +1511,15 @@ private fun AboutThanksCard(
             ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
+        // Text on the highlighted (tertiary container) card must use its matching "on" colour.
+        val titleColor =
+            if (highlighted) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurface
+        val bodyColor =
+            if (highlighted) {
+                MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f)
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
         Column(
             modifier = Modifier.padding(AboutSpacing.md),
             verticalArrangement = Arrangement.spacedBy(AboutSpacing.sm),
@@ -1518,12 +1527,12 @@ private fun AboutThanksCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = titleColor,
             )
             Text(
                 text = body,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = bodyColor,
             )
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(AboutSpacing.xs),
@@ -1538,6 +1547,18 @@ private fun AboutThanksCard(
                         AssistChip(
                             onClick = { onOpenUri(url) },
                             label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            colors =
+                                if (highlighted) {
+                                    androidx.compose.material3.AssistChipDefaults.assistChipColors(labelColor = titleColor)
+                                } else {
+                                    androidx.compose.material3.AssistChipDefaults.assistChipColors()
+                                },
+                            border =
+                                if (highlighted) {
+                                    androidx.compose.foundation.BorderStroke(1.dp, titleColor.copy(alpha = 0.6f))
+                                } else {
+                                    androidx.compose.material3.AssistChipDefaults.assistChipBorder(enabled = true)
+                                },
                         )
                     }
                 }
