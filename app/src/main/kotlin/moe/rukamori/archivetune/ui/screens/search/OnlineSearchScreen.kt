@@ -313,10 +313,7 @@ fun OnlineSearchScreen(
                                             onDismiss()
                                         }
 
-                                        is PodcastItem -> {
-                                            navController.navigate("podcast/${android.net.Uri.encode(item.browseId)}")
-                                            onDismiss()
-                                        }
+                                        is PodcastItem -> Unit
 
                                         is EpisodeItem -> {
                                             playerConnection.playQueue(

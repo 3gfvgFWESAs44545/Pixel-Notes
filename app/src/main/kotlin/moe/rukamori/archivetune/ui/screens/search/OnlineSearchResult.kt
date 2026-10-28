@@ -266,9 +266,7 @@ fun OnlineSearchResult(
                                     navController.navigate("online_playlist/${item.id}")
                                 }
 
-                                is PodcastItem -> {
-                                    navController.navigate("podcast/${android.net.Uri.encode(item.browseId)}")
-                                }
+                                is PodcastItem -> Unit
 
                                 is EpisodeItem -> {
                                     playerConnection.playQueue(

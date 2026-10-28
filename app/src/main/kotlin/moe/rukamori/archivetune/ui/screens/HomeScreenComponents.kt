@@ -1892,7 +1892,6 @@ fun HomePageSectionContent(
     menuState: MenuState,
     haptic: HapticFeedback,
     scope: CoroutineScope,
-    onOpenRemoteItem: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (section.featuredCards.isNotEmpty()) {
@@ -1930,7 +1929,6 @@ fun HomePageSectionContent(
                 menuState = menuState,
                 haptic = haptic,
                 scope = scope,
-                onOpenRemoteItem = onOpenRemoteItem,
             )
         }
     }
@@ -2220,7 +2218,6 @@ private fun YouTubeGridItemWrapper(
     menuState: MenuState,
     haptic: HapticFeedback,
     scope: CoroutineScope,
-    onOpenRemoteItem: ((String) -> Unit)? = null,
     fillMaxWidth: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
@@ -2257,7 +2254,7 @@ private fun YouTubeGridItemWrapper(
                                 navController.navigate("online_playlist/${item.id}")
                             }
 
-                            is PodcastItem, is EpisodeItem -> onOpenRemoteItem?.invoke(item.id)
+                            is PodcastItem, is EpisodeItem -> Unit
                         }
                     },
                     onLongClick =

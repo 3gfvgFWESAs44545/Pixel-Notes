@@ -128,7 +128,6 @@ import androidx.media3.common.Player.STATE_BUFFERING
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Player.STATE_READY
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.palette.graphics.Palette
@@ -186,8 +185,6 @@ import moe.rukamori.archivetune.ui.menu.AddToPlaylistDialog
 import moe.rukamori.archivetune.ui.menu.PlayerMenu
 import moe.rukamori.archivetune.ui.player.immersive.ImmersivePlayerEvent
 import moe.rukamori.archivetune.ui.player.immersive.ImmersivePlayerScreen
-import moe.rukamori.archivetune.ui.screens.LOGIN_ROUTE
-import moe.rukamori.archivetune.ui.screens.buildLoginRoute
 import moe.rukamori.archivetune.ui.screens.settings.DarkMode
 import moe.rukamori.archivetune.ui.theme.PlayerColorExtractor
 import android.widget.Toast
@@ -312,8 +309,6 @@ fun BottomSheetPlayer(
         onDispose { immersivePlayerViewModel.unbind(playerConnection) }
     }
     val playbackError by playerConnection.error.collectAsStateWithLifecycle()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
     val retryPlayback =
         remember(playerConnection) {
             {
@@ -324,14 +319,6 @@ fun BottomSheetPlayer(
     val dismissPlaybackError =
         remember(playerConnection) {
             playerConnection::dismissPlaybackError
-        }
-    val navigateToLogin: (String?) -> Unit =
-        remember(navController) {
-            { recoveryUrl ->
-                navController.navigate(buildLoginRoute(recoveryUrl)) {
-                    launchSingleTop = true
-                }
-            }
         }
     val playerDesignStyle by rememberEnumPreference(
         key = PlayerDesignStyleKey,
@@ -1903,21 +1890,11 @@ fun BottomSheetPlayer(
     }
 
     val activePlaybackError = playbackError
-    val isRecoveryDestination =
-        currentRoute?.startsWith(LOGIN_ROUTE) == true || currentRoute == "settings/account"
-    if (activePlaybackError != null && !isRecoveryDestination) {
-        val errorInfo = remember(activePlaybackError) { activePlaybackError.toPlaybackErrorInfo() }
-        val loginClick =
-            remember(errorInfo.loginRecoveryUrl, navigateToLogin) {
-                { navigateToLogin(errorInfo.loginRecoveryUrl) }
-            }
-
+    if (activePlaybackError != null) {
         PlaybackErrorDialog(
             error = activePlaybackError,
-            showLoginAction = errorInfo.loginRecoveryUrl != null,
             onRetry = retryPlayback,
             onClose = dismissPlaybackError,
-            onLogin = loginClick,
         )
     }
 }

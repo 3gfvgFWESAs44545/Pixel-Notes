@@ -113,7 +113,6 @@ fun BrowseScreen(
                 is BrowseEvent.OpenAlbum -> navController.navigateToAlbum(event.browseId)
                 is BrowseEvent.OpenPlaylist -> navController.navigate("online_playlist/${event.playlistId}")
                 is BrowseEvent.OpenArtist -> navController.navigateToArtist(event.browseId)
-                is BrowseEvent.OpenPodcast -> navController.navigate("podcast/${android.net.Uri.encode(event.browseId)}")
                 is BrowseEvent.PlayEpisode -> {
                     playerConnection.playQueue(
                         ListQueue(

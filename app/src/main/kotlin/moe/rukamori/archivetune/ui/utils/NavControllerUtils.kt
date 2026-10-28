@@ -9,7 +9,6 @@ package moe.rukamori.archivetune.ui.utils
 
 import android.net.Uri
 import androidx.navigation.NavController
-import moe.rukamori.archivetune.innertube.models.PODCAST_SHOW_BROWSE_PREFIX
 import moe.rukamori.archivetune.ui.screens.Screens
 
 internal fun NavController.navigateToArtist(artistId: String?) {
@@ -22,8 +21,7 @@ internal fun NavController.navigateToAlbum(albumId: String?) {
 
 private fun NavController.navigateToMediaDetail(id: String?, destination: String) {
     if (id.isNullOrBlank()) return
-    val route = if (id.startsWith(PODCAST_SHOW_BROWSE_PREFIX)) "podcast" else destination
-    navigate("$route/${Uri.encode(id)}")
+    navigate("$destination/${Uri.encode(id)}")
 }
 
 fun NavController.backToMain() {

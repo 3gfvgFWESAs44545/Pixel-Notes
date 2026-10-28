@@ -43,7 +43,6 @@ import moe.rukamori.archivetune.db.entities.*
 import moe.rukamori.archivetune.extensions.filterBlockedArtists
 import moe.rukamori.archivetune.extensions.toEnum
 import moe.rukamori.archivetune.home.HomeAction
-import moe.rukamori.archivetune.home.HomeEvent
 import moe.rukamori.archivetune.home.HomePresentationPreferences
 import moe.rukamori.archivetune.home.HomeScreenState
 import moe.rukamori.archivetune.home.HomeUiState
@@ -71,7 +70,6 @@ import moe.rukamori.archivetune.innertube.utils.completed
 import moe.rukamori.archivetune.innertube.utils.hasYouTubeLoginCookie
 import moe.rukamori.archivetune.models.SimilarRecommendation
 import moe.rukamori.archivetune.models.toMediaMetadata
-import moe.rukamori.archivetune.podcast.PodcastPlaybackRequest
 import moe.rukamori.archivetune.utils.SavedAccount
 import moe.rukamori.archivetune.utils.SpeedDialPinType
 import moe.rukamori.archivetune.utils.SyncUtils
@@ -249,8 +247,6 @@ class HomeViewModel
         val allLocalItems: StateFlow<List<LocalItem>> = _allLocalItems.asStateFlow()
         private val _allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
         val allYtItems: StateFlow<List<YTItem>> = _allYtItems.asStateFlow()
-        private val eventChannel = Channel<HomeEvent>(Channel.BUFFERED)
-        val events = eventChannel.receiveAsFlow()
 
         private val _accountName = MutableStateFlow("")
         val accountName: StateFlow<String> = _accountName.asStateFlow()
@@ -1123,31 +1119,11 @@ class HomeViewModel
                 }
         }
 
-        private fun openRemoteItem(itemId: String) {
-            when (val item = _allYtItems.value.firstOrNull { it.id == itemId }) {
-                is PodcastItem -> eventChannel.trySend(HomeEvent.OpenPodcast(item.browseId))
-                is EpisodeItem -> {
-                    eventChannel.trySend(
-                        HomeEvent.PlayPodcastEpisode(
-                            PodcastPlaybackRequest(
-                                title = item.podcast?.name ?: item.title,
-                                items = ImmutableList.of(item.toMediaMetadata()),
-                                startIndex = 0,
-                            ),
-                        ),
-                    )
-                }
-
-                else -> Unit
-            }
-        }
-
         fun onAction(action: HomeAction) {
             when (action) {
                 HomeAction.Refresh -> refresh()
                 is HomeAction.SelectChip -> toggleChip(action.chip)
                 is HomeAction.LoadMore -> loadMoreYouTubeItems(action.continuation)
-                is HomeAction.OpenRemoteItem -> openRemoteItem(action.itemId)
             }
         }
 

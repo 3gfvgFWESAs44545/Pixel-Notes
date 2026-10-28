@@ -286,10 +286,7 @@ import moe.rukamori.archivetune.ui.component.shimmer.ShimmerTheme
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.player.BottomSheetPlayer
 import moe.rukamori.archivetune.ui.screens.library.LibraryHeaderContentPadding
-import moe.rukamori.archivetune.ui.screens.LOGIN_URL_ARGUMENT
-import moe.rukamori.archivetune.ui.screens.LoginScreen
 import moe.rukamori.archivetune.ui.screens.Screens
-import moe.rukamori.archivetune.ui.screens.buildLoginRoute
 import moe.rukamori.archivetune.ui.screens.navigationBuilder
 import moe.rukamori.archivetune.ui.screens.onboarding.OnboardingRoute
 import moe.rukamori.archivetune.ui.screens.search.LocalSearchScreen
@@ -782,7 +779,6 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val onboardingViewModel: OnboardingViewModel = hiltViewModel()
                 val onboardingState by onboardingViewModel.screenState.collectAsStateWithLifecycle()
-                var showOnboardingLogin by rememberSaveable { mutableStateOf(false) }
                 val shouldShowOnboarding =
                     when (val state = onboardingState) {
                         OnboardingScreenState.Loading -> true
@@ -792,25 +788,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                 if (shouldShowOnboarding) {
-                    if (showOnboardingLogin) {
-                        CompositionLocalProvider(
-                            LocalPlayerAwareWindowInsets provides WindowInsets.systemBars,
-                        ) {
-                            LoginScreen(
-                                navController = navController,
-                                onLoginComplete = {
-                                    onboardingViewModel.onLoginCompleted()
-                                    showOnboardingLogin = false
-                                },
-                                onNavigateBack = { showOnboardingLogin = false },
-                            )
-                        }
-                    } else {
-                        OnboardingRoute(
-                            viewModel = onboardingViewModel,
-                            onLoginRequested = { showOnboardingLogin = true },
-                        )
-                    }
+                    OnboardingRoute(viewModel = onboardingViewModel)
                     return@ArchiveTuneTheme
                 }
 
@@ -2238,9 +2216,7 @@ class MainActivity : ComponentActivity() {
                                                                         }
                                                                     }
 
-                                                                    is PodcastItem -> {
-                                                                        navController.navigate("podcast/${Uri.encode(luckyItem.browseId)}")
-                                                                    }
+                                                                    is PodcastItem -> Unit
 
                                                                     is EpisodeItem -> {
                                                                         playerConnection?.playQueue(

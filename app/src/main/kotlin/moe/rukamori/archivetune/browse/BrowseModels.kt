@@ -69,10 +69,6 @@ sealed interface BrowseEvent {
         val browseId: String,
     ) : BrowseEvent
 
-    data class OpenPodcast(
-        val browseId: String,
-    ) : BrowseEvent
-
     @Immutable
     data class PlayEpisode(
         val episode: EpisodeItem,

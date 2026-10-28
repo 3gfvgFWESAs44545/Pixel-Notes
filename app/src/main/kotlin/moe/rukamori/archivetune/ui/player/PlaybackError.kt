@@ -64,10 +64,8 @@ import moe.rukamori.archivetune.R
 @Composable
 fun PlaybackErrorDialog(
     error: PlaybackException,
-    showLoginAction: Boolean,
     onRetry: () -> Unit,
     onClose: () -> Unit,
-    onLogin: () -> Unit,
 ) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
@@ -80,7 +78,6 @@ fun PlaybackErrorDialog(
     val closeText = stringResource(R.string.close)
     val copyText = stringResource(R.string.copy)
     val copiedText = stringResource(R.string.copied)
-    val loginText = stringResource(R.string.login)
     val detailsText = stringResource(R.string.playback_error_details)
     val codeLabel = stringResource(R.string.playback_error_code)
     val httpLabel = stringResource(R.string.playback_error_http)
@@ -206,12 +203,9 @@ fun PlaybackErrorDialog(
                             retryText = retryText,
                             closeText = closeText,
                             copyText = copyText,
-                            loginText = loginText,
-                            showLoginAction = showLoginAction,
                             onRetry = onRetry,
                             onClose = onClose,
                             onCopy = onCopyClick,
-                            onLogin = onLogin,
                         )
                     } else {
                         PlaybackErrorCompactContent(
@@ -222,12 +216,9 @@ fun PlaybackErrorDialog(
                             retryText = retryText,
                             closeText = closeText,
                             copyText = copyText,
-                            loginText = loginText,
-                            showLoginAction = showLoginAction,
                             onRetry = onRetry,
                             onClose = onClose,
                             onCopy = onCopyClick,
-                            onLogin = onLogin,
                         )
                     }
                 }
@@ -245,12 +236,9 @@ private fun PlaybackErrorCompactContent(
     retryText: String,
     closeText: String,
     copyText: String,
-    loginText: String,
-    showLoginAction: Boolean,
     onRetry: () -> Unit,
     onClose: () -> Unit,
     onCopy: () -> Unit,
-    onLogin: () -> Unit,
 ) {
     Column(
         modifier =
@@ -276,12 +264,9 @@ private fun PlaybackErrorCompactContent(
             retryText = retryText,
             closeText = closeText,
             copyText = copyText,
-            loginText = loginText,
-            showLoginAction = showLoginAction,
             onRetry = onRetry,
             onClose = onClose,
             onCopy = onCopy,
-            onLogin = onLogin,
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -296,12 +281,9 @@ private fun PlaybackErrorExpandedContent(
     retryText: String,
     closeText: String,
     copyText: String,
-    loginText: String,
-    showLoginAction: Boolean,
     onRetry: () -> Unit,
     onClose: () -> Unit,
     onCopy: () -> Unit,
-    onLogin: () -> Unit,
 ) {
     Row(
         modifier =
@@ -331,12 +313,9 @@ private fun PlaybackErrorExpandedContent(
                 retryText = retryText,
                 closeText = closeText,
                 copyText = copyText,
-                loginText = loginText,
-                showLoginAction = showLoginAction,
                 onRetry = onRetry,
                 onClose = onClose,
                 onCopy = onCopy,
-                onLogin = onLogin,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -456,12 +435,9 @@ private fun PlaybackErrorActions(
     retryText: String,
     closeText: String,
     copyText: String,
-    loginText: String,
-    showLoginAction: Boolean,
     onRetry: () -> Unit,
     onClose: () -> Unit,
     onCopy: () -> Unit,
-    onLogin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     FlowRow(
@@ -474,14 +450,6 @@ private fun PlaybackErrorActions(
                 icon = R.drawable.close,
                 label = closeText,
             )
-        }
-        if (showLoginAction) {
-            OutlinedButton(onClick = onLogin) {
-                PlaybackErrorActionContent(
-                    icon = R.drawable.login,
-                    label = loginText,
-                )
-            }
         }
         FilledTonalButton(onClick = onCopy) {
             PlaybackErrorActionContent(

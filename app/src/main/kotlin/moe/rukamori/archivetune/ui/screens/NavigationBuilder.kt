@@ -11,7 +11,6 @@ import moe.rukamori.archivetune.ui.screens.settings.KhinsiderAccountRoute
 import moe.rukamori.archivetune.ui.screens.settings.KhinsiderAccountScreen
 import moe.rukamori.archivetune.ui.screens.settings.KhinsiderSignInRoute
 import moe.rukamori.archivetune.ui.screens.settings.KhinsiderSignInScreen
-import android.net.Uri
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -45,7 +44,6 @@ import moe.rukamori.archivetune.ui.screens.playlist.LocalPlaylistScreen
 import moe.rukamori.archivetune.ui.screens.playlist.OnlinePlaylistScreen
 import moe.rukamori.archivetune.ui.screens.playlist.TopPlaylistScreen
 import moe.rukamori.archivetune.ui.screens.podcast.PodcastRoute
-import moe.rukamori.archivetune.ui.screens.podcast.PodcastScreen
 import moe.rukamori.archivetune.ui.screens.search.OnlineSearchResult
 import moe.rukamori.archivetune.ui.screens.search.OnlineSearchResultArgument
 import moe.rukamori.archivetune.ui.screens.search.OnlineSearchResultRoute
@@ -139,9 +137,6 @@ fun NavGraphBuilder.navigationBuilder(
     composable(Screens.MoodAndGenres.route) {
         MoodAndGenresScreen(navController)
     }
-    composable("account") {
-        AccountScreen(navController, scrollBehavior)
-    }
     composable("new_release") {
         NewReleaseScreen(navController, scrollBehavior)
     }
@@ -232,17 +227,6 @@ fun NavGraphBuilder.navigationBuilder(
             ),
     ) {
         AlbumScreen(navController, scrollBehavior)
-    }
-    composable(
-        route = PodcastRoute,
-        arguments =
-            listOf(
-                navArgument("browseId") {
-                    type = NavType.StringType
-                },
-            ),
-    ) {
-        PodcastScreen(navController)
     }
     composable(
         route = "artist/{artistId}",
@@ -442,21 +426,5 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("customize_background") {
         CustomizeBackground(navController)
-    }
-    composable(
-        route = "$LOGIN_ROUTE?$LOGIN_URL_ARGUMENT={$LOGIN_URL_ARGUMENT}",
-        arguments =
-            listOf(
-                navArgument(LOGIN_URL_ARGUMENT) {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                },
-            ),
-    ) { backStackEntry ->
-        LoginScreen(
-            navController,
-            startUrl = backStackEntry.arguments?.getString(LOGIN_URL_ARGUMENT)?.let(Uri::decode),
-        )
     }
 }

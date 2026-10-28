@@ -46,8 +46,6 @@ class BuildOnboardingUiStateUseCase
                 versionName = BuildConfig.VERSION_NAME,
                 pages = pages,
                 permissions = ImmutableList.copyOf(data.permissions.map { it.toUiModel() }),
-                loginBenefits = loginBenefits,
-                communityActions = communityActions,
             )
 
         private fun variantLabelResId(): Int =
@@ -187,45 +185,7 @@ class BuildOnboardingUiStateUseCase
                     // Pixel Notes: no YouTube Music login or ArchiveTune community page; khinsider needs no account.
                 )
 
-            val loginBenefits =
-                ImmutableList.of(
-                    OnboardingLoginBenefitUiModel(
-                        id = "library",
-                        titleResId = R.string.onboarding_login_library_title,
-                        descriptionResId = R.string.onboarding_login_library_desc,
-                        iconResId = R.drawable.library_music,
-                    ),
-                    OnboardingLoginBenefitUiModel(
-                        id = "history",
-                        titleResId = R.string.onboarding_login_history_title,
-                        descriptionResId = R.string.onboarding_login_history_desc,
-                        iconResId = R.drawable.history,
-                    ),
-                    OnboardingLoginBenefitUiModel(
-                        id = "playback",
-                        titleResId = R.string.onboarding_login_playback_title,
-                        descriptionResId = R.string.onboarding_login_playback_desc,
-                        iconResId = R.drawable.bolt,
-                    ),
-                )
 
-            val communityActions =
-                ImmutableList.of(
-                    OnboardingCommunityActionUiModel(
-                        id = "github",
-                        titleResId = R.string.support_development_star,
-                        descriptionResId = R.string.onboarding_community_github_desc,
-                        iconResId = R.drawable.github,
-                        url = moe.rukamori.archivetune.viewmodels.VgInsideRepoUrl,
-                    ),
-                    OnboardingCommunityActionUiModel(
-                        id = "donate",
-                        titleResId = R.string.about_content_desc_donate,
-                        descriptionResId = R.string.onboarding_community_donate_desc,
-                        iconResId = R.drawable.coffee,
-                        url = moe.rukamori.archivetune.viewmodels.KhinsiderDonateFaqUrl,
-                    ),
-                )
         }
     }
 

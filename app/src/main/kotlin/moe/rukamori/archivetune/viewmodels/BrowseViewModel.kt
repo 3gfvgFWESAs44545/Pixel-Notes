@@ -137,7 +137,6 @@ class BrowseViewModel
                     is AlbumItem -> BrowseEvent.OpenAlbum(item.id)
                     is PlaylistItem -> BrowseEvent.OpenPlaylist(item.id)
                     is ArtistItem -> BrowseEvent.OpenArtist(item.id)
-                    is PodcastItem -> BrowseEvent.OpenPodcast(item.browseId)
                     is EpisodeItem -> BrowseEvent.PlayEpisode(item)
                     else -> return
                 }

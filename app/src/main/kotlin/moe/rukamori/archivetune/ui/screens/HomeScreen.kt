@@ -60,7 +60,6 @@ import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.QuickPicks
 import moe.rukamori.archivetune.home.HomeAction
-import moe.rukamori.archivetune.home.HomeEvent
 import moe.rukamori.archivetune.home.HomeScreenState
 import moe.rukamori.archivetune.home.HomeUiState
 import moe.rukamori.archivetune.home.hasVisibleContent
@@ -93,23 +92,6 @@ fun HomeScreen(
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val isPlaying by playerConnection.isPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
-
-    LaunchedEffect(viewModel, playerConnection, navController) {
-        viewModel.events.collect { event ->
-            when (event) {
-                is HomeEvent.OpenPodcast -> navController.navigate("podcast/${Uri.encode(event.browseId)}")
-                is HomeEvent.PlayPodcastEpisode -> {
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = event.request.title,
-                            items = event.request.items.map { metadata -> metadata.toMediaItem() },
-                            startIndex = event.request.startIndex,
-                        ),
-                    )
-                }
-            }
-        }
-    }
 
     val lazyListState = rememberLazyListState()
     val forgottenFavoritesGridState = rememberLazyGridState()
@@ -450,7 +432,6 @@ private fun HomeContent(
                                 menuState = menuState,
                                 haptic = haptic,
                                 scope = scope,
-                                onOpenRemoteItem = { itemId -> onAction(HomeAction.OpenRemoteItem(itemId)) },
                                 modifier = Modifier.animateItem(),
                             )
                         }
@@ -624,7 +605,6 @@ private fun HomeContent(
                                     menuState = menuState,
                                     haptic = haptic,
                                     scope = scope,
-                                    onOpenRemoteItem = { itemId -> onAction(HomeAction.OpenRemoteItem(itemId)) },
                                     modifier = Modifier.animateItem(),
                                 )
                             }

@@ -84,26 +84,6 @@ class OnboardingViewModel
             }
         }
 
-        fun onCommunityAction(action: OnboardingCommunityActionUiModel) {
-            viewModelScope.launch {
-                mutableEvents.emit(OnboardingEvent.OpenUri(action.url))
-            }
-        }
-
-        fun onLogin() {
-            viewModelScope.launch {
-                mutableEvents.emit(OnboardingEvent.OpenLogin)
-            }
-        }
-
-        fun onLoginCompleted() {
-            val success = screenState.value as? OnboardingScreenState.Success ?: return
-            val currentPageIndex = success.uiState.currentPage
-            if (success.uiState.pages.getOrNull(currentPageIndex)?.id == OnboardingPageId.LOGIN) {
-                currentPage.value = currentPageIndex + 1
-            }
-        }
-
         fun onPermissionResult() {
             refreshSignals.update { it + 1 }
         }
