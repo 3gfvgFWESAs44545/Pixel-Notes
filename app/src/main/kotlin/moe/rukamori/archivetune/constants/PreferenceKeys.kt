@@ -192,13 +192,8 @@ val UseSystemLanguageKey = booleanPreferencesKey("useSystemLanguage")
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
 val PlaylistSuggestionSourceKey = stringPreferencesKey("playlistSuggestionSource")
-val EnableKugouKey = booleanPreferencesKey("enableKugou")
-val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
 val HideVideoKey = booleanPreferencesKey("hideVideo")
-val YtmSyncKey = booleanPreferencesKey("ytmSync")
-val ForceSyncOnAccountSwitchKey = booleanPreferencesKey("forceSyncOnAccountSwitch")
-val SelectedYtmPlaylistsKey = stringPreferencesKey("ytm_selected_playlists")
 val ImportSourcePriorityKey = booleanPreferencesKey("import_local_first")
 val LocalSongsMinDurationSecondsKey = intPreferencesKey("local_songs_min_duration_seconds")
 val LocalSongsIncludedFoldersKey = stringSetPreferencesKey("local_songs_included_folders")
@@ -206,27 +201,7 @@ val LocalSongsExcludedFoldersKey = stringSetPreferencesKey("local_songs_excluded
 val LocalSongsSortTypeKey = stringPreferencesKey("local_songs_sort_type")
 val LocalSongsSortDescendingKey = booleanPreferencesKey("local_songs_sort_descending")
 
-
-
-
 // Last.fm scrobbling
-val LastFMSessionKey = stringPreferencesKey("lastfmSession")
-val LastFMUsernameKey = stringPreferencesKey("lastfmUsername")
-val LastFMProviderKey = stringPreferencesKey("lastfmProvider")
-val LastFMCustomEndpointKey = stringPreferencesKey("lastfmCustomEndpoint")
-val LastFMApiKeyOverrideKey = stringPreferencesKey("lastfmApiKeyOverride")
-val LastFMSecretOverrideKey = stringPreferencesKey("lastfmSecretOverride")
-val EnableLastFMScrobblingKey = booleanPreferencesKey("lastfmScrobblingEnable")
-val LastFMUseNowPlaying = booleanPreferencesKey("lastfmUseNowPlaying")
-val ScrobbleDelayPercentKey = floatPreferencesKey("scrobbleDelayPercent")
-val ScrobbleMinSongDurationKey = intPreferencesKey("scrobbleMinSongDuration")
-val ScrobbleDelaySecondsKey = intPreferencesKey("scrobbleDelaySeconds")
-
-enum class LastFmProvider {
-    LASTFM,
-    LIBREFM,
-    CUSTOM,
-}
 
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 
@@ -300,54 +275,18 @@ val PauseListenHistoryKey = booleanPreferencesKey("pauseListenHistory")
 val PauseSearchHistoryKey = booleanPreferencesKey("pauseSearchHistory")
 val DisableScreenshotKey = booleanPreferencesKey("disableScreenshot")
 
-val DiscordTokenKey = stringPreferencesKey("discordToken")
-val DiscordRefreshTokenKey = stringPreferencesKey("discordRefreshToken")
-val DiscordTokenExpiresAtKey = longPreferencesKey("discordTokenExpiresAt")
-val DiscordInfoDismissedKey = booleanPreferencesKey("discordInfoDismissed")
-val DiscordUsernameKey = stringPreferencesKey("discordUsername")
-val DiscordNameKey = stringPreferencesKey("discordName")
-val DiscordAvatarUrlKey = stringPreferencesKey("discordAvatarUrl")
-val EnableDiscordRPCKey = booleanPreferencesKey("discordRPCEnable")
-
 // Discord activity customization keys
-val DiscordActivityNameKey = stringPreferencesKey("discordActivityName")
-val DiscordActivityDetailsKey = stringPreferencesKey("discordActivityDetails")
-val DiscordActivityStateKey = stringPreferencesKey("discordActivityState")
 
 // Custom button labels and urls for Discord activity buttons
-val DiscordActivityButton1LabelKey = stringPreferencesKey("discordActivityButton1Label")
-val DiscordActivityButton1UrlSourceKey = stringPreferencesKey("discordActivityButton1UrlSource")
-val DiscordActivityButton1CustomUrlKey = stringPreferencesKey("discordActivityButton1CustomUrl")
-val DiscordActivityButton2LabelKey = stringPreferencesKey("discordActivityButton2Label")
-val DiscordActivityButton2UrlSourceKey = stringPreferencesKey("discordActivityButton2UrlSource")
-val DiscordActivityButton2CustomUrlKey = stringPreferencesKey("discordActivityButton2CustomUrl")
-val DiscordActivityButton1EnabledKey = booleanPreferencesKey("discordActivityButton1Enabled")
-val DiscordActivityButton2EnabledKey = booleanPreferencesKey("discordActivityButton2Enabled")
-val DiscordShowWhenPausedKey = booleanPreferencesKey("discordShowWhenPaused")
 
 // Activity type for Discord presence (PLAYING, STREAMING, LISTENING, WATCHING, COMPETING)
-val DiscordActivityTypeKey = stringPreferencesKey("discordActivityType")
-val DiscordPresenceStatusKey = stringPreferencesKey("discordPresenceStatus") // "ONLINE", "IDLE", "DND", "INVISIBLE"
 
 // Discord image selection keys
 // Values for type keys: "thumbnail", "artist", "appicon", "custom"
-val DiscordLargeImageTypeKey = stringPreferencesKey("discordLargeImageType")
-val DiscordLargeTextSourceKey = stringPreferencesKey("discordLargeTextSource")
-val DiscordLargeTextCustomKey = stringPreferencesKey("discordLargeTextCustom")
-val DiscordLargeImageCustomUrlKey = stringPreferencesKey("discordLargeImageCustomUrl")
-val DiscordSmallImageTypeKey = stringPreferencesKey("discordSmallImageType")
-val DiscordSmallImageCustomUrlKey = stringPreferencesKey("discordSmallImageCustomUrl")
-
-
-val TranslatorContextsKey = stringPreferencesKey("translatorContexts")
-val TranslatorTargetLangKey = stringPreferencesKey("translatorTargetLang")
-val EnableTranslatorKey = booleanPreferencesKey("enableTranslator")
 
 val ChipSortTypeKey = stringPreferencesKey("chipSortType")
 val SongSortTypeKey = stringPreferencesKey("songSortType")
 val SongSortDescendingKey = booleanPreferencesKey("songSortDescending")
-val PlaylistSongSortTypeKey = stringPreferencesKey("playlistSongSortType")
-val PlaylistSongSortDescendingKey = booleanPreferencesKey("playlistSongSortDescending")
 val AutoPlaylistSongSortTypeKey = stringPreferencesKey("autoPlaylistSongSortType")
 val AutoPlaylistSongSortDescendingKey = booleanPreferencesKey("autoPlaylistSongSortDescending")
 val ArtistSortTypeKey = stringPreferencesKey("artistSortType")
@@ -358,40 +297,16 @@ val PlaylistSortTypeKey = stringPreferencesKey("playlistSortType")
 val PlaylistSortDescendingKey = booleanPreferencesKey("playlistSortDescending")
 val ArtistSongSortTypeKey = stringPreferencesKey("artistSongSortType")
 val ArtistSongSortDescendingKey = booleanPreferencesKey("artistSongSortDescending")
-val MixSortTypeKey = stringPreferencesKey("mixSortType")
-val MixSortDescendingKey = booleanPreferencesKey("albumSortDescending")
 
 val SongFilterKey = stringPreferencesKey("songFilter")
 val ArtistFilterKey = stringPreferencesKey("artistFilter")
 val AlbumFilterKey = stringPreferencesKey("albumFilter")
 
-val LastLikeSongSyncKey = longPreferencesKey("last_like_song_sync")
-val LastLibSongSyncKey = longPreferencesKey("last_library_song_sync")
-val LastAlbumSyncKey = longPreferencesKey("last_album_sync")
-val LastArtistSyncKey = longPreferencesKey("last_artist_sync")
-val LastPlaylistSyncKey = longPreferencesKey("last_playlist_sync")
-
-val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
-val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
-
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
 val QuickPicksKey = stringPreferencesKey("discover")
 
-val NewsLastReadTimestampKey = longPreferencesKey("news_last_read_timestamp")
 val SpeedDialSongIdsKey = stringPreferencesKey("speedDialSongIds")
 val QueueEditLockKey = booleanPreferencesKey("queueEditLock")
-
-enum class LibraryViewType {
-    LIST,
-    GRID,
-    ;
-
-    fun toggle() =
-        when (this) {
-            LIST -> GRID
-            GRID -> LIST
-        }
-}
 
 enum class QuickPicksDisplayMode {
     CARD,
@@ -469,12 +384,6 @@ enum class PlaylistSortType {
     SONG_COUNT,
     LAST_UPDATED,
     CUSTOM,
-}
-
-enum class MixSortType {
-    CREATE_DATE,
-    NAME,
-    LAST_UPDATED,
 }
 
 enum class GridItemSize {
@@ -628,13 +537,10 @@ val PoTokenKey = stringPreferencesKey("poToken")
 val AccountNameKey = stringPreferencesKey("accountName")
 val AccountEmailKey = stringPreferencesKey("accountEmail")
 val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
-val SavedAccountsKey = stringPreferencesKey("savedAccounts")
 val UseLoginForBrowse = booleanPreferencesKey("useLoginForBrowse")
 
-val WebClientPoTokenEnabledKey = booleanPreferencesKey("webClientPoTokenEnabled")
 val PoTokenGvsKey = stringPreferencesKey("poTokenGvs")
 val PoTokenPlayerKey = stringPreferencesKey("poTokenPlayer")
-val UseVisitorDataKey = booleanPreferencesKey("useVisitorData")
 val PoTokenSourceUrlKey = stringPreferencesKey("poTokenSourceUrl")
 
 val LanguageCodeToName =
@@ -727,15 +633,11 @@ val OnboardingCompletedKey = booleanPreferencesKey("onboarding_completed")
 val HasPressedStarKey = booleanPreferencesKey("has_pressed_star")
 val RemindAfterKey = intPreferencesKey("remind_after")
 
-
 val GitHubContributorsEtagKey = stringPreferencesKey("github_contributors_etag")
 val GitHubContributorsJsonKey = stringPreferencesKey("github_contributors_json")
 val GitHubContributorsLastCheckedAtKey = longPreferencesKey("github_contributors_last_checked_at")
 val GitHubTranslationContributorsJsonKey = stringPreferencesKey("github_translation_contributors_json")
 val GitHubTranslationContributorsLastCheckedAtKey = longPreferencesKey("github_translation_contributors_last_checked_at")
-
-
-
 
 val RedownloadOnRestoreKey = booleanPreferencesKey("redownloadOnRestore")
 

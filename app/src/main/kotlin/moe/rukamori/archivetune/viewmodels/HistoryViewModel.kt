@@ -16,11 +16,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import moe.rukamori.archivetune.constants.HistorySource
 import moe.rukamori.archivetune.db.MusicDatabase
 import moe.rukamori.archivetune.db.entities.EventWithSong
-import moe.rukamori.archivetune.innertube.YouTube
-import moe.rukamori.archivetune.innertube.pages.HistoryPage
 import moe.rukamori.archivetune.utils.reportException
 import timber.log.Timber
 import java.time.DayOfWeek
@@ -34,9 +31,6 @@ class HistoryViewModel
     constructor(
         val database: MusicDatabase,
     ) : ViewModel() {
-        var historySource = MutableStateFlow(HistorySource.LOCAL)
-        private val _remoteHistoryState = MutableStateFlow<RemoteHistoryUiState>(RemoteHistoryUiState.Loading)
-        val remoteHistoryState: StateFlow<RemoteHistoryUiState> = _remoteHistoryState
         private val loadedEvents = mutableListOf<EventWithSong>()
         val events = MutableStateFlow<Map<DateAgo, List<EventWithSong>>>(emptyMap())
         val isLoadingMoreEvents = MutableStateFlow(false)
@@ -68,78 +62,6 @@ class HistoryViewModel
                 } finally {
                     isLoadingMoreEvents.value = false
                 }
-            }
-        }
-
-        fun fetchRemoteHistory() {
-            _remoteHistoryState.value = RemoteHistoryUiState.Loading
-            viewModelScope.launch(Dispatchers.IO) {
-                YouTube
-                    .musicHistory()
-                    .onSuccess {
-                        _remoteHistoryState.value = it.toRemoteUiState()
-                    }.onFailure {
-                        _remoteHistoryState.value = RemoteHistoryUiState.Error
-                        reportException(it)
-                    }
-            }
-        }
-
-        /**
-         * Fetches remote history without transitioning the UI to a Loading state.
-         *
-         * - [RemoteHistoryUiState.Error]   → delegates to [fetchRemoteHistory] (user sees spinner)
-         * - [RemoteHistoryUiState.Loading] → fetches silently; transitions to Error on failure
-         * - [RemoteHistoryUiState.Empty]   → fetches silently; transitions to Error on failure
-         * - [RemoteHistoryUiState.Success] → fetches silently; keeps cached data + logs warning on failure
-         *
-         * Call from a coroutine context (e.g. LaunchedEffect or viewModelScope.launch).
-         */
-        suspend fun fetchRemoteHistorySilent() {
-            val snapshot = _remoteHistoryState.value
-
-            if (snapshot is RemoteHistoryUiState.Error) {
-                fetchRemoteHistory()
-                return
-            }
-
-            withContext(Dispatchers.IO) {
-                try {
-                    val page = YouTube.musicHistory().getOrThrow()
-                    _remoteHistoryState.value = page.toRemoteUiState()
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Timber.tag("History").w(e, "Silent remote history fetch failed")
-                    when (snapshot) {
-                        is RemoteHistoryUiState.Success -> {
-                            // Keep cached data; don't disrupt the user
-                        }
-
-                        is RemoteHistoryUiState.Loading,
-                        is RemoteHistoryUiState.Empty,
-                        -> {
-                            _remoteHistoryState.value = RemoteHistoryUiState.Error
-                        }
-                    }
-                }
-            }
-        }
-
-        private fun HistoryPage.toRemoteUiState(): RemoteHistoryUiState =
-            if (sections?.any { it.songs.isNotEmpty() } == true) {
-                RemoteHistoryUiState.Success(this)
-            } else {
-                RemoteHistoryUiState.Empty
-            }
-
-        /**
-         * Non-suspend wrapper for call sites that are not already in a coroutine
-         * (e.g. click handlers in Compose).
-         */
-        fun enqueueSilentFetch() {
-            viewModelScope.launch(Dispatchers.IO) {
-                fetchRemoteHistorySilent()
             }
         }
 
@@ -189,18 +111,6 @@ class HistoryViewModel
     }
 
 private const val HISTORY_PAGE_SIZE = 100
-
-sealed interface RemoteHistoryUiState {
-    data object Loading : RemoteHistoryUiState
-
-    data class Success(
-        val page: HistoryPage,
-    ) : RemoteHistoryUiState
-
-    data object Empty : RemoteHistoryUiState
-
-    data object Error : RemoteHistoryUiState
-}
 
 sealed class DateAgo {
     data object Today : DateAgo()

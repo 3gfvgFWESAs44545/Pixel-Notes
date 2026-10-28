@@ -66,12 +66,6 @@ import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.constants.AppBarHeight
 import moe.rukamori.archivetune.extensions.togglePlayPause
 import moe.rukamori.archivetune.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
-import moe.rukamori.archivetune.innertube.YouTube.SearchFilter.Companion.FILTER_ARTIST
-import moe.rukamori.archivetune.innertube.YouTube.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
-import moe.rukamori.archivetune.innertube.YouTube.SearchFilter.Companion.FILTER_FEATURED_PLAYLIST
-import moe.rukamori.archivetune.innertube.YouTube.SearchFilter.Companion.FILTER_PODCAST
-import moe.rukamori.archivetune.innertube.YouTube.SearchFilter.Companion.FILTER_SONG
-import moe.rukamori.archivetune.innertube.YouTube.SearchFilter.Companion.FILTER_VIDEO
 import moe.rukamori.archivetune.innertube.models.AlbumItem
 import moe.rukamori.archivetune.innertube.models.ArtistItem
 import moe.rukamori.archivetune.innertube.models.EpisodeItem
@@ -133,15 +127,7 @@ fun OnlineSearchResult(
                 ?.takeIf { it.items.isNotEmpty() }
                 ?.let(::add)
 
-            (if (YouTube.khinsiderMode) listOf(FILTER_ALBUM to stringResource(R.string.filter_albums)) else listOf(
-                FILTER_SONG to stringResource(R.string.filter_songs),
-                FILTER_VIDEO to stringResource(R.string.filter_videos),
-                FILTER_ALBUM to stringResource(R.string.filter_albums),
-                FILTER_ARTIST to stringResource(R.string.filter_artists),
-                FILTER_PODCAST to stringResource(R.string.podcast),
-                FILTER_COMMUNITY_PLAYLIST to stringResource(R.string.filter_community_playlists),
-                FILTER_FEATURED_PLAYLIST to stringResource(R.string.filter_featured_playlists),
-            )).forEach { (sectionFilter, sectionTitle) ->
+            listOf(FILTER_ALBUM to stringResource(R.string.filter_albums)).forEach { (sectionFilter, sectionTitle) ->
                 viewModel.viewStateMap[sectionFilter.value]
                     ?.items
                     ?.takeIf { it.isNotEmpty() }
@@ -151,16 +137,7 @@ fun OnlineSearchResult(
             }
         }
     val isAllModeLoaded =
-        (!YouTube.khinsiderMode && searchSummary != null) ||
-            (if (YouTube.khinsiderMode) listOf(FILTER_ALBUM) else listOf(
-                FILTER_SONG,
-                FILTER_VIDEO,
-                FILTER_ALBUM,
-                FILTER_ARTIST,
-                FILTER_PODCAST,
-                FILTER_COMMUNITY_PLAYLIST,
-                FILTER_FEATURED_PLAYLIST,
-            )).all { viewModel.viewStateMap.containsKey(it.value) }
+        viewModel.viewStateMap.containsKey(FILTER_ALBUM.value)
 
     LaunchedEffect(lazyListState) {
         snapshotFlow {
@@ -300,20 +277,9 @@ fun OnlineSearchResult(
         ) {
             ChipsRow(
                 chips =
-                    if (YouTube.khinsiderMode) {
-                        listOf(
-                            null to stringResource(R.string.filter_all),
-                            FILTER_ALBUM to stringResource(R.string.filter_albums),
-                        )
-                    } else listOf(
+                    listOf(
                         null to stringResource(R.string.filter_all),
-                        FILTER_SONG to stringResource(R.string.filter_songs),
-                        FILTER_VIDEO to stringResource(R.string.filter_videos),
                         FILTER_ALBUM to stringResource(R.string.filter_albums),
-                        FILTER_ARTIST to stringResource(R.string.filter_artists),
-                        FILTER_PODCAST to stringResource(R.string.podcast),
-                        FILTER_COMMUNITY_PLAYLIST to stringResource(R.string.filter_community_playlists),
-                        FILTER_FEATURED_PLAYLIST to stringResource(R.string.filter_featured_playlists),
                     ),
                 currentValue = searchFilter,
                 onValueUpdate = {
@@ -327,13 +293,7 @@ fun OnlineSearchResult(
                 icons =
                     mapOf(
                         null to R.drawable.search,
-                        FILTER_SONG to R.drawable.music_note,
-                        FILTER_VIDEO to R.drawable.slow_motion_video,
                         FILTER_ALBUM to R.drawable.album,
-                        FILTER_ARTIST to R.drawable.person,
-                        FILTER_PODCAST to R.drawable.mic,
-                        FILTER_COMMUNITY_PLAYLIST to R.drawable.queue_music,
-                        FILTER_FEATURED_PLAYLIST to R.drawable.playlist_play,
                     ),
             )
         }

@@ -81,7 +81,6 @@ import moe.rukamori.archivetune.constants.AlbumSortDescendingKey
 import moe.rukamori.archivetune.constants.AlbumSortType
 import moe.rukamori.archivetune.constants.AlbumSortTypeKey
 import moe.rukamori.archivetune.constants.HideExplicitKey
-import moe.rukamori.archivetune.constants.YtmSyncKey
 import moe.rukamori.archivetune.playback.queues.LocalAlbumRadio
 import moe.rukamori.archivetune.ui.component.ItemThumbnail
 import moe.rukamori.archivetune.ui.component.LocalMenuState
@@ -114,15 +113,12 @@ fun LibraryAlbumsScreen(
             AlbumSortType.CREATE_DATE,
         )
     val (sortDescending, onSortDescendingChange) = rememberPreference(AlbumSortDescendingKey, true)
-    val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     var isGridView by rememberSaveable { mutableStateOf(true) }
 
-    LaunchedEffect(ytmSync, filter) {
-        if (ytmSync) {
-            viewModel.refresh(filter)
-        }
+    LaunchedEffect(filter) {
+        viewModel.refresh(filter)
     }
 
     val albums by viewModel.allAlbums.collectAsStateWithLifecycle()

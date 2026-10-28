@@ -15,7 +15,6 @@ package moe.rukamori.archivetune.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -105,18 +104,14 @@ import moe.rukamori.archivetune.LocalAnimationsDisabled
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.constants.HistorySource
-import moe.rukamori.archivetune.constants.InnerTubeCookieKey
 import moe.rukamori.archivetune.db.entities.EventWithSong
 import moe.rukamori.archivetune.extensions.metadata
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.extensions.togglePlayPause
 import moe.rukamori.archivetune.innertube.YouTube
 import moe.rukamori.archivetune.innertube.pages.HistoryPage
-import moe.rukamori.archivetune.innertube.utils.hasYouTubeLoginCookie
 import moe.rukamori.archivetune.models.toMediaMetadata
 import moe.rukamori.archivetune.playback.queues.ListQueue
-import moe.rukamori.archivetune.playback.queues.YouTubeQueue
 import moe.rukamori.archivetune.ui.component.HideOnScrollFAB
 import moe.rukamori.archivetune.ui.component.LocalMenuState
 import moe.rukamori.archivetune.ui.component.SongListItem
@@ -124,13 +119,11 @@ import moe.rukamori.archivetune.ui.component.TopSearch
 import moe.rukamori.archivetune.ui.component.YouTubeListItem
 import moe.rukamori.archivetune.ui.menu.SelectionMediaMetadataMenu
 import moe.rukamori.archivetune.ui.menu.SongMenu
-import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.DateAgo
 import moe.rukamori.archivetune.viewmodels.HistoryViewModel
-import moe.rukamori.archivetune.viewmodels.RemoteHistoryUiState
 import java.time.format.DateTimeFormatter
 import moe.rukamori.archivetune.ui.component.IconButton as AppIconButton
 
@@ -148,17 +141,9 @@ fun HistoryScreen(
     val isPlaying by playerConnection.isPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
 
-    val historySource by viewModel.historySource.collectAsStateWithLifecycle()
     val events by viewModel.events.collectAsStateWithLifecycle()
     val isLoadingMoreEvents by viewModel.isLoadingMoreEvents.collectAsStateWithLifecycle()
     val canLoadMoreEvents by viewModel.canLoadMoreEvents.collectAsStateWithLifecycle()
-    val remoteHistoryState by viewModel.remoteHistoryState.collectAsStateWithLifecycle()
-
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn =
-        remember(innerTubeCookie) {
-            hasYouTubeLoginCookie(innerTubeCookie)
-        }
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -168,7 +153,6 @@ fun HistoryScreen(
 
     val focusRequester = remember { FocusRequester() }
     val localListState = rememberLazyListState()
-    val remoteListState = rememberLazyListState()
     val scrollBehavior =
         appBarScrollBehavior(
             canScroll = { !isSearching && selectedEventIds.isEmpty() },
@@ -205,34 +189,7 @@ fun HistoryScreen(
         }
     val selectionCount = selectedSongs.size
 
-    val filteredRemoteSections =
-        remember(remoteHistoryState, searchQuery) {
-            when (remoteHistoryState) {
-                is RemoteHistoryUiState.Success -> {
-                    filterRemoteSections(
-                        (remoteHistoryState as RemoteHistoryUiState.Success).page.sections.orEmpty(),
-                        searchQuery,
-                    )
-                }
-
-                else -> {
-                    emptyList()
-                }
-            }
-        }
-    val remoteVisibleSongs =
-        remember(filteredRemoteSections) {
-            filteredRemoteSections.flatMap { it.songs }
-        }
-    val availableSources =
-        remember(isLoggedIn) {
-            if (isLoggedIn) {
-                listOf(HistorySource.LOCAL, HistorySource.REMOTE)
-            } else {
-                listOf(HistorySource.LOCAL)
-            }
-        }
-    val activeListState = if (historySource == HistorySource.REMOTE) remoteListState else localListState
+    val activeListState = localListState
     val motionDuration = if (animationsDisabled) 0 else 220
 
     val clearSelection =
@@ -261,137 +218,66 @@ fun HistoryScreen(
             }
         }
 
-    val currentVisibleCount =
-        if (historySource == HistorySource.REMOTE) {
-            remoteVisibleSongs.size
-        } else {
-            localVisibleEvents.size
-        }
+    val currentVisibleCount = localVisibleEvents.size
 
     val historySourceDock: @Composable () -> Unit = {
-        HistorySourceDock(
-            visibleSongCount = currentVisibleCount,
-            availableSources = availableSources,
-            currentSource = historySource,
-            onSourceChange = { newSource ->
-                if (newSource == historySource) return@HistorySourceDock
-
-                viewModel.historySource.value = newSource
-                if (newSource == HistorySource.REMOTE) {
-                    when (remoteHistoryState) {
-                        is RemoteHistoryUiState.Error -> {
-                            viewModel.fetchRemoteHistory()
-                        }
-
-                        is RemoteHistoryUiState.Empty -> {
-                            viewModel.enqueueSilentFetch()
-                        }
-
-                        else -> {
-                            Unit
-                        }
-                    }
-                }
-            },
-        )
+        HistorySourceDock(visibleSongCount = currentVisibleCount)
     }
 
     val historyContent: @Composable (Dp) -> Unit = { topPadding ->
-        Crossfade(
-            targetState = historySource,
-            animationSpec = tween(durationMillis = motionDuration),
-            label = "HistorySourceContent",
-        ) { source ->
-            when (source) {
-                HistorySource.REMOTE -> {
-                    RemoteHistoryFeed(
-                        listState = remoteListState,
-                        topPadding = topPadding,
-                        headerContent = historySourceDock,
-                        remoteHistoryState = remoteHistoryState,
-                        filteredSections = filteredRemoteSections,
-                        isPlaying = isPlaying,
-                        activeMediaId = mediaMetadata?.id,
+        LocalHistoryFeed(
+            listState = localListState,
+            topPadding = topPadding,
+            headerContent = historySourceDock,
+            filteredEvents = filteredEvents,
+            visibleEvents = localVisibleEvents,
+            isLoadingMore = isLoadingMoreEvents,
+            canLoadMore = canLoadMoreEvents,
+            isSearchActive = searchQuery.isNotBlank(),
+            selectedEventIds = selectedEventIdSet,
+            isPlaying = isPlaying,
+            activeMediaId = mediaMetadata?.id,
+            dateAgoToString = dateAgoToString,
+            navController = navController,
+            onToggleSelection = { eventId ->
+                selectedEventIds =
+                    if (eventId in selectedEventIdSet) {
+                        selectedEventIds - eventId
+                    } else {
+                        selectedEventIds + eventId
+                    }
+            },
+            onStartSelection = { eventId ->
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                if (eventId !in selectedEventIdSet) {
+                    selectedEventIds = selectedEventIds + eventId
+                }
+            },
+            onSongMenu = { event ->
+                menuState.show {
+                    SongMenu(
+                        originalSong = event.song,
+                        event = event.event,
                         navController = navController,
-                        onRetry = viewModel::fetchRemoteHistory,
-                        onSongMenu = { song ->
-                            menuState.show {
-                                YouTubeSongMenu(
-                                    song = song,
-                                    navController = navController,
-                                    onDismiss = menuState::dismiss,
-                                )
-                            }
-                        },
-                        onSongClick = { song ->
-                            if (song.id == mediaMetadata?.id) {
-                                playerConnection.player.togglePlayPause()
-                            } else {
-                                playerConnection.playQueue(
-                                    YouTubeQueue.radio(song.toMediaMetadata()),
-                                )
-                            }
-                        },
+                        onDismiss = menuState::dismiss,
                     )
                 }
-
-                HistorySource.LOCAL -> {
-                    LocalHistoryFeed(
-                        listState = localListState,
-                        topPadding = topPadding,
-                        headerContent = historySourceDock,
-                        filteredEvents = filteredEvents,
-                        visibleEvents = localVisibleEvents,
-                        isLoadingMore = isLoadingMoreEvents,
-                        canLoadMore = canLoadMoreEvents,
-                        isSearchActive = searchQuery.isNotBlank(),
-                        selectedEventIds = selectedEventIdSet,
-                        isPlaying = isPlaying,
-                        activeMediaId = mediaMetadata?.id,
-                        dateAgoToString = dateAgoToString,
-                        navController = navController,
-                        onToggleSelection = { eventId ->
-                            selectedEventIds =
-                                if (eventId in selectedEventIdSet) {
-                                    selectedEventIds - eventId
-                                } else {
-                                    selectedEventIds + eventId
-                                }
-                        },
-                        onStartSelection = { eventId ->
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            if (eventId !in selectedEventIdSet) {
-                                selectedEventIds = selectedEventIds + eventId
-                            }
-                        },
-                        onSongMenu = { event ->
-                            menuState.show {
-                                SongMenu(
-                                    originalSong = event.song,
-                                    event = event.event,
-                                    navController = navController,
-                                    onDismiss = menuState::dismiss,
-                                )
-                            }
-                        },
-                        onSongClick = { dateAgo, songsForDate, index, event ->
-                            if (event.song.id == mediaMetadata?.id) {
-                                playerConnection.player.togglePlayPause()
-                            } else {
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = dateAgoToString(dateAgo),
-                                        items = songsForDate.map { it.song.toMediaItem() },
-                                        startIndex = index,
-                                    ),
-                                )
-                            }
-                        },
-                        onLoadMore = viewModel::loadMoreEvents,
+            },
+            onSongClick = { dateAgo, songsForDate, index, event ->
+                if (event.song.id == mediaMetadata?.id) {
+                    playerConnection.player.togglePlayPause()
+                } else {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = dateAgoToString(dateAgo),
+                            items = songsForDate.map { it.song.toMediaItem() },
+                            startIndex = index,
+                        ),
                     )
                 }
-            }
-        }
+            },
+            onLoadMore = viewModel::loadMoreEvents,
+        )
     }
 
     LaunchedEffect(isSearching) {
@@ -400,41 +286,9 @@ fun HistoryScreen(
         }
     }
 
-    LaunchedEffect(historySource, isLoggedIn) {
-        if (!isLoggedIn && historySource == HistorySource.REMOTE) {
-            viewModel.historySource.value = HistorySource.LOCAL
-        }
-        if (historySource != HistorySource.LOCAL && selectedEventIds.isNotEmpty()) {
-            selectedEventIds = emptyList()
-        }
-    }
-
     LaunchedEffect(localVisibleEventIds) {
         if (selectedEventIds.any { it !in localVisibleEventIdSet }) {
             selectedEventIds = selectedEventIds.filter(localVisibleEventIdSet::contains)
-        }
-    }
-
-    // A. When screen opens + user is logged in → fetch remote history in background
-    LaunchedEffect("prefetch", isLoggedIn) {
-        if (!isLoggedIn) return@LaunchedEffect
-        if (remoteHistoryState is RemoteHistoryUiState.Success) return@LaunchedEffect
-        delay(1_000) // wait for screen
-
-        viewModel.fetchRemoteHistorySilent()
-    }
-
-    // B. When playback sync happens → retry with backoff
-    LaunchedEffect("sync", isLoggedIn) {
-        YouTube.historySyncEvent.collect {
-            if (!isLoggedIn) return@collect
-
-            // Retry 3 times with increasing delay (handles slow internet)
-            repeat(3) { attempt ->
-                delay(3000L * (attempt + 1)) // 3s, 6s, 9s
-                viewModel.fetchRemoteHistorySilent()
-                if (remoteHistoryState is RemoteHistoryUiState.Success) return@collect
-            }
         }
     }
 
@@ -520,16 +374,7 @@ fun HistoryScreen(
                 icon = R.drawable.shuffle,
                 label = stringResource(R.string.shuffle),
                 onClick = {
-                    if (historySource == HistorySource.REMOTE) {
-                        if (remoteVisibleSongs.isNotEmpty()) {
-                            playerConnection.playQueue(
-                                ListQueue(
-                                    title = context.getString(R.string.history),
-                                    items = remoteVisibleSongs.map { it.toMediaItem() }.shuffled(),
-                                ),
-                            )
-                        }
-                    } else if (localVisibleEvents.isNotEmpty()) {
+                    if (localVisibleEvents.isNotEmpty()) {
                         playerConnection.playQueue(
                             ListQueue(
                                 title = context.getString(R.string.history),
@@ -602,7 +447,7 @@ fun HistoryScreen(
             }
 
             HistorySelectionToolbar(
-                visible = selectionCount > 0 && !showSearchBar && historySource == HistorySource.LOCAL,
+                visible = selectionCount > 0 && !showSearchBar,
                 allVisibleSelected = localVisibleEvents.isNotEmpty() && selectionCount == localVisibleEvents.size,
                 onToggleAll = {
                     selectedEventIds =
@@ -787,144 +632,8 @@ private fun LocalHistoryFeed(
 }
 
 @Composable
-private fun RemoteHistoryFeed(
-    listState: LazyListState,
-    topPadding: Dp,
-    headerContent: @Composable () -> Unit,
-    remoteHistoryState: RemoteHistoryUiState,
-    filteredSections: List<HistoryPage.HistorySection>,
-    isPlaying: Boolean,
-    activeMediaId: String?,
-    navController: NavController,
-    onRetry: () -> Unit,
-    onSongMenu: (moe.rukamori.archivetune.innertube.models.SongItem) -> Unit,
-    onSongClick: (moe.rukamori.archivetune.innertube.models.SongItem) -> Unit,
-) {
-    LazyColumn(
-        state = listState,
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .wrapContentWidth(Alignment.CenterHorizontally)
-                .widthIn(max = 840.dp)
-                .padding(top = topPadding)
-                .windowInsetsPadding(
-                    LocalPlayerAwareWindowInsets.current.only(
-                        WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom,
-                    ),
-                ),
-        contentPadding = PaddingValues(bottom = 112.dp),
-    ) {
-        item("history_overview") {
-            headerContent()
-        }
-
-        when (remoteHistoryState) {
-            RemoteHistoryUiState.Loading -> {
-                item("remote_history_loading") {
-                    HistoryStateCard(
-                        title = stringResource(R.string.history_remote_loading),
-                        description = stringResource(R.string.history_remote_summary),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        loading = true,
-                    )
-                }
-            }
-
-            RemoteHistoryUiState.Empty -> {
-                item("remote_history_empty") {
-                    HistoryStateCard(
-                        title = stringResource(R.string.history_remote_empty_title),
-                        description = stringResource(R.string.history_remote_empty_desc),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        icon = R.drawable.history,
-                    )
-                }
-            }
-
-            RemoteHistoryUiState.Error -> {
-                item("remote_history_error") {
-                    HistoryStateCard(
-                        title = stringResource(R.string.history_remote_error_title),
-                        description = stringResource(R.string.history_remote_error_desc),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        actionLabel = stringResource(R.string.retry),
-                        onActionClick = onRetry,
-                        icon = R.drawable.history,
-                    )
-                }
-            }
-
-            is RemoteHistoryUiState.Success -> {
-                if (filteredSections.isEmpty()) {
-                    item("remote_history_search_empty") {
-                        HistoryStateCard(
-                            title = stringResource(R.string.history_no_results_title),
-                            description = stringResource(R.string.history_no_results_desc),
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                            icon = R.drawable.search,
-                        )
-                    }
-                } else {
-                    filteredSections.forEach { section ->
-                        stickyHeader(key = "header_${section.title}") {
-                            HistorySectionHeader(
-                                title = section.title,
-                                songCount = section.songs.size,
-                            )
-                        }
-
-                        itemsIndexed(
-                            items = section.songs,
-                            key = { _, song -> "${section.title}_${song.id}" },
-                            contentType = { _, _ -> "remote_history_song" },
-                        ) { index, song ->
-                            val isActive = song.id == activeMediaId
-                            HistorySongGroupItem(
-                                index = index,
-                                lastIndex = section.songs.lastIndex,
-                                isActive = isActive,
-                                modifier = Modifier.animateItem(),
-                            ) { containerColor ->
-                                YouTubeListItem(
-                                    item = song,
-                                    isActive = isActive,
-                                    isPlaying = isPlaying,
-                                    swipeContentBackgroundColor = containerColor,
-                                    showActiveContainer = false,
-                                    trailingContent = {
-                                        androidx.compose.material3.IconButton(
-                                            onClick = { onSongMenu(song) },
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null,
-                                            )
-                                        }
-                                    },
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .combinedClickable(
-                                                onClick = { onSongClick(song) },
-                                                onLongClick = { onSongMenu(song) },
-                                            ),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun HistorySourceDock(
     visibleSongCount: Int,
-    availableSources: List<HistorySource>,
-    currentSource: HistorySource,
-    onSourceChange: (HistorySource) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -965,25 +674,13 @@ private fun HistorySourceDock(
                     ) {
                         Text(
                             text =
-                                stringResource(
-                                    if (currentSource == HistorySource.LOCAL) {
-                                        R.string.local_history
-                                    } else {
-                                        R.string.remote_history
-                                    },
-                                ),
+                                stringResource(R.string.local_history),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
                             text =
-                                stringResource(
-                                    if (currentSource == HistorySource.LOCAL) {
-                                        R.string.history_local_summary
-                                    } else {
-                                        R.string.history_remote_summary
-                                    },
-                                ),
+                                stringResource(R.string.history_local_summary),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 2,
@@ -995,13 +692,6 @@ private fun HistorySourceDock(
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }
-                }
-                if (availableSources.size > 1) {
-                    HistorySourceSelector(
-                        currentSource = currentSource,
-                        availableSources = availableSources,
-                        onSourceChange = onSourceChange,
-                    )
                 }
             }
         }
@@ -1102,60 +792,6 @@ private fun HistorySectionHeader(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-    }
-}
-
-@Composable
-private fun HistorySourceSelector(
-    currentSource: HistorySource,
-    availableSources: List<HistorySource>,
-    onSourceChange: (HistorySource) -> Unit,
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        availableSources.forEachIndexed { index, source ->
-            val checked = source == currentSource
-            ToggleButton(
-                checked = checked,
-                onCheckedChange = {
-                    if (!checked) {
-                        onSourceChange(source)
-                    }
-                },
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .height(52.dp),
-                shapes =
-                    when (index) {
-                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        availableSources.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    },
-                colors =
-                    ToggleButtonDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    ),
-            ) {
-                Text(
-                    text =
-                        stringResource(
-                            if (source == HistorySource.LOCAL) {
-                                R.string.local_history
-                            } else {
-                                R.string.remote_history
-                            },
-                        ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
         }
     }
 }
@@ -1327,26 +963,6 @@ private fun filterLocalEvents(
                     }
             }
         }.filterValues { it.isNotEmpty() }
-}
-
-private fun filterRemoteSections(
-    sections: List<HistoryPage.HistorySection>,
-    query: String,
-): List<HistoryPage.HistorySection> {
-    if (query.isBlank()) return sections
-
-    return sections
-        .map { section ->
-            section.copy(
-                songs =
-                    section.songs.filter { song ->
-                        song.title.contains(query, ignoreCase = true) ||
-                            song.artists.any { artist ->
-                                artist.name.contains(query, ignoreCase = true)
-                            }
-                    },
-            )
-        }.filter { it.songs.isNotEmpty() }
 }
 
 private const val HISTORY_LOAD_MORE_THRESHOLD = 12

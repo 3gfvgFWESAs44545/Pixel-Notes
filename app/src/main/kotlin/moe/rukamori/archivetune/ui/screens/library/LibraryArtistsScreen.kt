@@ -78,7 +78,6 @@ import moe.rukamori.archivetune.constants.ArtistSongSortType
 import moe.rukamori.archivetune.constants.ArtistSortDescendingKey
 import moe.rukamori.archivetune.constants.ArtistSortType
 import moe.rukamori.archivetune.constants.ArtistSortTypeKey
-import moe.rukamori.archivetune.constants.YtmSyncKey
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.playback.queues.ListQueue
 import moe.rukamori.archivetune.ui.component.ItemThumbnail
@@ -109,14 +108,11 @@ fun LibraryArtistsScreen(
             ArtistSortType.CREATE_DATE,
         )
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)
-    val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
     var filter by rememberEnumPreference(ArtistFilterKey, ArtistFilter.LIKED)
 
-    LaunchedEffect(ytmSync, filter) {
-        if (ytmSync) {
-            viewModel.refresh(filter)
-        }
+    LaunchedEffect(filter) {
+        viewModel.refresh(filter)
     }
 
     val artists by viewModel.allArtists.collectAsStateWithLifecycle()

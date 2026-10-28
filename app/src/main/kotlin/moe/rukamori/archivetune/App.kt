@@ -205,7 +205,7 @@ class App :
             }
         }
 
-        // Pixel Notes: proxy, DNS over HTTPS, ListenBrainz, Listen Together, AI, SponsorBlock, Canvas and Spotify were removed. Clear any values
+        // Pixel Notes: proxy, DNS over HTTPS, ListenBrainz, Listen Together, AI, SponsorBlock, Canvas, Spotify and YouTube sign-in were removed. Clear any values
         // saved by older versions so passwords and tokens don't linger on the phone.
         applicationScope.launch(Dispatchers.IO) {
             runCatching {
@@ -219,6 +219,10 @@ class App :
                         "github_releases_last_checked_at", "github_releases_fingerprint",
                         "daily_nightly_releases_etag", "daily_nightly_releases_json",
                         "daily_nightly_releases_last_checked_at", "daily_nightly_releases_fingerprint",
+                        "innerTubeCookie", "dataSyncId", "accountName", "accountEmail", "accountChannelHandle",
+                        "savedAccounts", "ytmSync", "forceSyncOnAccountSwitch", "ytm_selected_playlists",
+                        "lastfmSession", "lastfmUsername", "discordToken", "discordRefreshToken",
+                        "discordTokenExpiresAt", "discordUsername", "discordName", "discordAvatarUrl",
                     )
                 dataStore.edit { prefs ->
                     prefs.asMap().keys.filter { it.name in removedKeys || it.name.startsWith("together_") || it.name.startsWith("ai_") || it.name.startsWith("aiContentFilter") || it.name.startsWith("sponsorBlock") || it.name.startsWith("canvas") || it.name == "archiveTuneCanvas" || it.name == "maxCanvasCacheSize" || it.name.startsWith("spotify_") || it.name == "show_spotify_playlists" }.forEach { prefs.remove(it) }

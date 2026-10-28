@@ -64,17 +64,10 @@ import moe.rukamori.archivetune.innertube.models.BrowseEndpoint
 import moe.rukamori.archivetune.ui.component.NavigationTitle
 import moe.rukamori.archivetune.ui.component.shimmer.ShimmerHost
 import moe.rukamori.archivetune.ui.component.shimmer.TextPlaceholder
-import moe.rukamori.archivetune.viewmodels.MoodAndGenresViewModel
 import java.util.concurrent.ConcurrentHashMap
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MoodAndGenresScreen(
-    navController: NavController,
-    viewModel: MoodAndGenresViewModel = hiltViewModel(),
-) {
-    val moodAndGenres by viewModel.moodAndGenres.collectAsState()
-    val gridState = rememberLazyGridState()
+fun MoodAndGenresScreen(navController: NavController) {
     val density = LocalDensity.current
     val windowInsets = LocalPlayerAwareWindowInsets.current
     val topPadding = with(density) { windowInsets.getTop(this).toDp() }
@@ -87,96 +80,17 @@ fun MoodAndGenresScreen(
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
-            if (YouTube.khinsiderMode) khinsiderListState.animateScrollToItem(0) else gridState.animateScrollToItem(0)
+            khinsiderListState.animateScrollToItem(0)
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
         }
     }
 
     // Pixel Notes: khinsider categories get their own collapsible Browse page.
-    if (YouTube.khinsiderMode) {
-        KhinsiderBrowsePage(
-            navController = navController,
-            listState = khinsiderListState,
-            contentPadding = PaddingValues(top = topPadding, bottom = bottomPadding + 12.dp),
-        )
-        return
-    }
-
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 180.dp),
-        state = gridState,
-        contentPadding =
-            PaddingValues(
-                start = 6.dp,
-                top = topPadding,
-                end = 6.dp,
-                bottom = bottomPadding,
-            ),
-    ) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            NavigationTitle(
-                title = stringResource(R.string.mood_and_genres),
-                modifier = Modifier.animateItem(),
-            )
-        }
-
-        if (moodAndGenres == null) {
-            items(
-                count = 12,
-                key = { index -> "mood_genres_shimmer_$index" },
-                contentType = { "mood_genres_shimmer" },
-            ) {
-                ShimmerHost {
-                    TextPlaceholder(
-                        height = MoodAndGenresButtonHeight,
-                        shape = MoodAndGenresButtonShape,
-                        modifier = Modifier.padding(6.dp),
-                    )
-                }
-            }
-        } else {
-            moodAndGenres.orEmpty().forEach { group ->
-                item(
-                    key = "mood_genres_header_${group.title}",
-                    span = { GridItemSpan(maxLineSpan) },
-                    contentType = "mood_genres_header",
-                ) {
-                    Text(
-                        text = group.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier =
-                            Modifier
-                                .padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 4.dp)
-                                .animateItem(),
-                    )
-                }
-                items(
-                    items = group.items,
-                    key = { item -> "${group.title}:${item.title}:${item.endpoint.browseId}:${item.endpoint.params}" },
-                    contentType = { "mood_genres_item" },
-                ) { item ->
-                    MoodAndGenresButton(
-                        title = item.title,
-                        stripeColor = item.stripeColor,
-                        endpoint = item.endpoint,
-                        onClick = {
-                            if (KhinsiderIds.isKhinsider(item.endpoint.browseId)) {
-                                navController.navigate("browse/${Uri.encode(item.endpoint.browseId)}")
-                            } else {
-                                navController.navigate("youtube_browse/${item.endpoint.browseId}?params=${item.endpoint.params}")
-                            }
-                        },
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(6.dp)
-                                .animateItem(),
-                    )
-                }
-            }
-        }
-    }
+    KhinsiderBrowsePage(
+        navController = navController,
+        listState = khinsiderListState,
+        contentPadding = PaddingValues(top = topPadding, bottom = bottomPadding + 12.dp),
+    )
 }
 
 @Composable
