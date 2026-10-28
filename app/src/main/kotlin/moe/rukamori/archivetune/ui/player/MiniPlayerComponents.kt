@@ -81,7 +81,6 @@ import moe.rukamori.archivetune.constants.NavigationBarHorizontalPadding
 import moe.rukamori.archivetune.extensions.togglePlayPause
 import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.playback.PlayerConnection
-import moe.rukamori.archivetune.together.isConnectedToSession
 import moe.rukamori.archivetune.utils.rememberLowDataModeActive
 import moe.rukamori.archivetune.utils.rememberPreference
 import kotlin.math.absoluteValue
@@ -102,8 +101,6 @@ data class MiniPlayerContentColors(
     val secondaryButtonContainer: Color,
     val buttonIcon: Color,
     val disabledButtonIcon: Color,
-    val togetherContainer: Color,
-    val togetherContent: Color,
 )
 
 @Composable
@@ -532,7 +529,6 @@ fun NewMiniPlayerContent(
     val isPlaying by playerConnection.isPlaying.collectAsStateWithLifecycle()
     val playbackState by playerConnection.playbackState.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
-    val togetherSessionState by playerConnection.service.togetherSessionState.collectAsStateWithLifecycle()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsStateWithLifecycle()
     val canSkipNext by playerConnection.canSkipNext.collectAsStateWithLifecycle()
 
@@ -563,22 +559,6 @@ fun NewMiniPlayerContent(
             )
         } ?: Spacer(Modifier.weight(1f))
 
-        if (togetherSessionState.isConnectedToSession) {
-            Surface(
-                shape = CircleShape,
-                color = colors.togetherContainer,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.all_inclusive),
-                    contentDescription = stringResource(R.string.music_together),
-                    tint = colors.togetherContent,
-                    modifier =
-                        Modifier
-                            .padding(7.dp)
-                            .size(14.dp),
-                )
-            }
-        }
 
         MiniPlayerTransportControls(
             isPlaying = isPlaying,

@@ -298,22 +298,12 @@ class PlayerConnection(
     }
 
     fun seekToNext() {
-        val state = service.togetherSessionState.value as? moe.rukamori.archivetune.together.TogetherSessionState.Joined
-        if (state?.role is moe.rukamori.archivetune.together.TogetherRole.Guest) {
-            service.requestTogetherControl(moe.rukamori.archivetune.together.ControlAction.SkipNext)
-            return
-        }
         player.seekToNext()
         player.prepare()
         player.playWhenReady = true
     }
 
     fun seekToPrevious() {
-        val state = service.togetherSessionState.value as? moe.rukamori.archivetune.together.TogetherSessionState.Joined
-        if (state?.role is moe.rukamori.archivetune.together.TogetherRole.Guest) {
-            service.requestTogetherControl(moe.rukamori.archivetune.together.ControlAction.SkipPrevious)
-            return
-        }
         player.seekToPrevious()
         player.prepare()
         player.playWhenReady = true

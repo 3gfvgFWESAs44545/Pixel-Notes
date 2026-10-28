@@ -231,7 +231,7 @@ class App :
             }
         }
 
-        // Pixel Notes: proxy, DNS over HTTPS and ListenBrainz were removed. Clear any values
+        // Pixel Notes: proxy, DNS over HTTPS, ListenBrainz and Listen Together were removed. Clear any values
         // saved by older versions so passwords and tokens don't linger on the phone.
         applicationScope.launch(Dispatchers.IO) {
             runCatching {
@@ -242,7 +242,7 @@ class App :
                         "listenbrainz_enabled", "listenbrainz_token",
                     )
                 dataStore.edit { prefs ->
-                    prefs.asMap().keys.filter { it.name in removedKeys }.forEach { prefs.remove(it) }
+                    prefs.asMap().keys.filter { it.name in removedKeys || it.name.startsWith("together_") }.forEach { prefs.remove(it) }
                 }
             }
         }
