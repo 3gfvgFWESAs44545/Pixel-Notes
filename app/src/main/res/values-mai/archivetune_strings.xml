@@ -10,7 +10,6 @@
     <string name="music_recognition_signature_failed">सिग्नेचर नहि बना सकल अछि</string>
     <string name="music_recognition_recognition_failed">पहिचान असफल रहल अछि</string>
     <string name="music_recognition_open_shazam">Shazam खोलू</string>
-    <string name="music_recognition_lyrics_preview">गीतक बोलक पूर्वावलोकन</string>
     <string name="music_recognition_permission_title">माइक्रोफोनक अनुमति</string>
     <string name="music_recognition_permission_desc">नजदीकमे बजि रहल संगीतक पहिचान करबाक लेल माइक्रोफोनक पहुँचक अनुमति दिअ।</string>
     <string name="music_recognition_permission_action">अनुमति दिअ</string>

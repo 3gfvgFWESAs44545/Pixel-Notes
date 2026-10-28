@@ -7,7 +7,6 @@
 
 package moe.rukamori.archivetune.ui.screens.search
 
-import moe.rukamori.archivetune.innertube.YouTube
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable

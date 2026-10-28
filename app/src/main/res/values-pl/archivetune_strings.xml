@@ -42,13 +42,8 @@
     <string name="music_recognition_history_recognized_at">Rozpoznano %1$s</string>
     <string name="local_history">Lokalne</string>
     <string name="history_local_summary">Odtworzono na tym urządzeniu</string>
-    <string name="history_remote_summary">Synchronizowane z YouTube Music</string>
     <string name="history_local_empty_title">Na razie brak lokalnej historii</string>
     <string name="history_local_empty_desc">Utwory odtwarzane na tym urządzeniu pojawią się tutaj.</string>
-    <string name="history_remote_loading">Synchronizowanie zdalnej historii</string>
-    <string name="history_remote_empty_title">Brak dostępnej zdalnej histori</string>
-    <string name="history_remote_error_title">Nie udało załadować zdalnej historii</string>
-    <string name="history_remote_error_desc">Spróbuj ponownie za chwilę.</string>
     <string name="history_no_results_title">Nie odnaleziono piosenki</string>
     <string name="history_no_results_desc">Spróbuj inną piosenkę albo nazwę artysty.</string>
     <string name="clear_selection">Wyczyścić selekcje</string>
@@ -58,10 +53,8 @@
     <string name="local_songs_permission_body">Zezwól aplikacji na dostęp do pamięci w celu skanowania plików audio zapisanych na tym urządzeniu.</string>
     <string name="music_recognition_processing">Przetwarzanie…</string>
     <string name="music_recognition_no_match">Nie znaleziono dopasowania</string>
-    <string name="music_recognition_lyrics_preview">Podgląd tekstu</string>
     <string name="music_recognition_background_description">Gdy funkcja jest włączona, kafel Szybkich ustawień wykrywa dźwięk odtwarzany na tym urządzeniu bez konieczności otwierania aplikacji Pixel Notes.</string>
     <string name="music_recognition_background_foss_description">Rozpoznawanie w tle jest niedostępne w wariancie FOSS. Kafelek Szybkich ustawień zamiast tego otwiera ekran rozpoznawania.</string>
     <string name="music_recognition_notification_recording_failed_title">Nie można przechwycić dźwięku urządzenia</string>
     <string name="music_recognition_notification_recognition_failed_text">Usługa rozpoznawania nie mogła zidentyfikować tego dźwięku. Spróbuj ponownie za chwilę.</string>
-    <string name="history_remote_empty_desc">Twoja zsynchronizowana historia odtwarzania pojawi się tutaj po tym, jak posłuchasz czegoś w YouTube Music.</string>
 </resources>

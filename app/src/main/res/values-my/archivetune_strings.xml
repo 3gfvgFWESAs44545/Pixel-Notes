@@ -8,7 +8,6 @@
     <string name="music_recognition_no_match">ကိုက်ညီမှုမတွေ့ပါ</string>
     <string name="music_recognition_recognition_failed">ရှာမတွေ့ပါ</string>
     <string name="music_recognition_open_shazam">Shazam ဖွင့်မည်</string>
-    <string name="music_recognition_lyrics_preview">စားသား အစမ်းကြည့်</string>
     <string name="music_recognition_permission_title">မိုက်ခရိုဖုန်း ခွင့်ပြုချက်</string>
     <string name="music_recognition_permission_desc">အနီးနားရှိ သီချင်းကို ရှာရန် မိုက်ခရိုဖုန်း အသုံးပြုခွင့်ပေးပါ</string>
     <string name="music_recognition_permission_action">ခွင့်ပြုမည်</string>

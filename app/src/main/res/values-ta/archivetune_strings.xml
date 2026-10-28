@@ -10,7 +10,6 @@
     <string name="music_recognition_signature_failed">அடையாளக் குறியீட்டை உருவாக்க முடியவில்லை</string>
     <string name="music_recognition_recognition_failed">அடையாளம் காண முடியவில்லை</string>
     <string name="music_recognition_open_shazam">Shazam-ஐத் திறக்கவும்</string>
-    <string name="music_recognition_lyrics_preview">பாடல் வரிக் காட்சி</string>
     <string name="music_recognition_permission_title">மைக் அனுமதி</string>
     <string name="music_recognition_permission_desc">அருகிலுள்ள இசையைக் கண்டறிய மைக் அனுமதியை வழங்கவும்.</string>
     <string name="music_recognition_permission_action">அனுமதி</string>
@@ -49,14 +48,8 @@
     <string name="music_recognition_history_recognized_at">%1$s அடையாளம் காணப்பட்டது</string>
     <string name="local_history">சாதனம்</string>
     <string name="history_local_summary">இந்தச் சாதனத்தில் இசைக்கப்பட்டது</string>
-    <string name="history_remote_summary">YouTube Music இலிருந்து ஒத்திசைக்கப்பட்டது</string>
     <string name="history_local_empty_title">சாதனத்தில் இதுவரை வரலாறு எதுவும் இல்லை</string>
     <string name="history_local_empty_desc">இந்தச் சாதனத்தில் நீங்கள் இசைக்கும் பாடல்கள் இங்கு தோன்றும்.</string>
-    <string name="history_remote_loading">தொலைநிலை வரலாறு ஒத்திசைக்கப்படுகிறது</string>
-    <string name="history_remote_empty_title">தொலைநிலை வரலாறு எதுவும் கிடைக்கவில்லை</string>
-    <string name="history_remote_empty_desc">YouTube Music-இல் நீங்கள் கேட்ட பிறகு, ஒத்திசைக்கப்பட்ட பார்வை வரலாறு இங்கு தோன்றும்.</string>
-    <string name="history_remote_error_title">தொலைநிலை வரலாற்றைக் கொண்டுவர முடியவில்லை</string>
-    <string name="history_remote_error_desc">சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.</string>
     <string name="history_no_results_title">பொருந்தும் பாடல்கள் எதுவும் கிடைக்கவில்லை</string>
     <string name="history_no_results_desc">மற்றொரு பாடல் அல்லது இசைக் கலைஞரின் பெயரை முயற்சிக்கவும்.</string>
     <string name="clear_selection">தேர்வை நீக்கு</string>

@@ -17,10 +17,8 @@
     <string name="speed_dial">Tez terish</string>
     <string name="forgotten_favorites">Unutilgan sevimlilar</string>
     <string name="keep_listening">Tinglashda davom eting</string>
-    <string name="your_youtube_playlists">YouTube pleylistlaringiz</string>
     <string name="similar_to">Shunga o\'xshash</string>
     <string name="new_release_albums">Yangi chiqarilgan albomlar</string>
-    <string name="integration">Integratsiya</string>
     <string name="today">Bugun</string>
     <string name="yesterday">Kecha</string>
     <string name="this_week">Ushbu hafta</string>
@@ -34,12 +32,10 @@
     <string name="filter_downloaded">Yuklab olindi</string>
     <string name="filter_all">Hammasi</string>
     <string name="filter_songs">Qo\'shiqlar</string>
-    <string name="filter_videos">Videolar</string>
     <string name="filter_albums">Albomlar</string>
     <string name="filter_artists">San\'atkorlar</string>
     <string name="filter_playlists">Playlistlar</string>
     <string name="filter_community_playlists">Hamjamiyat playlistlari</string>
-    <string name="filter_featured_playlists">Tavsiya etilgan pleylistlar</string>
     <string name="no_results_found">Hech qanday natija topilmadi</string>
     <string name="top_results">Eng yaxshi natijalar</string>
     <string name="most_played_badge">ENG KO\'P O\'YNALGAN</string>

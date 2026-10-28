@@ -8,7 +8,6 @@
 package moe.rukamori.archivetune.innertube
 
 import io.ktor.client.*
-import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.HttpTimeout
@@ -25,10 +24,8 @@ import moe.rukamori.archivetune.innertube.models.Context
 import moe.rukamori.archivetune.innertube.models.YouTubeClient
 import moe.rukamori.archivetune.innertube.models.YouTubeLocale
 import moe.rukamori.archivetune.innertube.models.body.*
-import moe.rukamori.archivetune.innertube.models.response.NextResponse
 import moe.rukamori.archivetune.innertube.utils.sha1
 import moe.rukamori.archivetune.innertube.utils.youtubeLoginCookieValue
-import okhttp3.Dns
 import java.io.IOException
 import java.net.Proxy
 import java.util.*

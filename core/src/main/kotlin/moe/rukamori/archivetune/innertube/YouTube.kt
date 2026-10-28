@@ -94,12 +94,8 @@ import moe.rukamori.archivetune.innertube.pages.SearchResult
 import moe.rukamori.archivetune.innertube.pages.SearchSuggestionPage
 import moe.rukamori.archivetune.innertube.pages.SearchSummary
 import moe.rukamori.archivetune.innertube.pages.SearchSummaryPage
-import okhttp3.Dns
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import moe.rukamori.archivetune.innertube.khinsider.KhinsiderBackend
 import moe.rukamori.archivetune.innertube.khinsider.KhinsiderIds
-import okhttp3.OkHttpClient
-import java.net.Proxy
 import kotlin.random.Random
 
 /**

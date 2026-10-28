@@ -10,7 +10,6 @@
     <string name="music_recognition_recognition_failed">पहचान विफल रही</string>
     <string name="suggestions">सुझाव</string>
     <string name="music_recognition_open_shazam">Shazam खोलें</string>
-    <string name="music_recognition_lyrics_preview">गीत पूर्वावलोकन</string>
     <string name="music_recognition_permission_title">माइक्रोफ़ोन की अनुमति</string>
     <string name="music_recognition_permission_desc">आस-पास चल रहे संगीत को पहचानने के लिए माइक्रोफ़ोन की अनुमति दें।</string>
     <string name="music_recognition_permission_action">अनुमति दें</string>
