@@ -644,7 +644,7 @@
     <string name="import_no_search_results">No matching songs found.</string>
     <string name="import_matched_to">Matched to: %1$s — %2$s</string>
     <string name="change_song_source">Change source</string>
-    <string name="change_song_source_desc">Replace this playlist entry from Local or YouTube Music.</string>
+    <string name="change_song_source_desc">Replace this playlist entry with another version from your phone or khinsider.</string>
     <string name="replace_song">Replace song</string>
     <string name="song_source_changed">Song source changed.</string>
     <string name="song_source_change_failed">Couldn’t change the song source.</string>

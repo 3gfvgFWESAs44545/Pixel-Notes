@@ -7599,7 +7599,6 @@ class MusicService :
         const val HOME_FORGOTTEN_FAVORITES = "home_forgotten_favorites"
         const val HOME_KEEP_LISTENING = "home_keep_listening"
         const val HOME_SUGGESTED_SONGS = "home_suggested_songs"
-        const val HOME_MIXES_AND_RADIOS = "home_mixes_and_radios"
         const val QUICK_PICKS = "quick_picks"
         const val RECENT = "recent"
         const val LIKED = "liked"

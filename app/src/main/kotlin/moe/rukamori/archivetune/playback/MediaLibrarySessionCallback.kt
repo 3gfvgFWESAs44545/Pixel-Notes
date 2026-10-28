@@ -647,15 +647,6 @@ class MediaLibrarySessionCallback
                                         ),
                                     )
                                 }
-                                add(
-                                    browsableMediaItem(
-                                        MusicService.HOME_MIXES_AND_RADIOS,
-                                        context.getString(R.string.android_auto_mixes_and_radios),
-                                        null,
-                                        drawableUri(R.drawable.radio),
-                                        MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS,
-                                    ),
-                                )
                             }
                         }
 
@@ -688,10 +679,6 @@ class MediaLibrarySessionCallback
                         MusicService.HOME_SUGGESTED_SONGS -> {
                             (if (onlineRecommendationsAllowed) homeSuggestedSongs() else emptyList())
                                 .map { it.toMediaItem(parentId) }
-                        }
-
-                        MusicService.HOME_MIXES_AND_RADIOS -> {
-                            homeMixesAndRadios(includeOnline = onlineRecommendationsAllowed)
                         }
 
                         MusicService.QUICK_PICKS -> {
@@ -955,19 +942,6 @@ class MediaLibrarySessionCallback
                                 null,
                                 drawableUri(R.drawable.music_note),
                                 MediaMetadata.MEDIA_TYPE_PLAYLIST,
-                            ),
-                            null,
-                        )
-                    }
-
-                    mediaId == MusicService.HOME_MIXES_AND_RADIOS -> {
-                        LibraryResult.ofItem(
-                            browsableMediaItem(
-                                MusicService.HOME_MIXES_AND_RADIOS,
-                                context.getString(R.string.android_auto_mixes_and_radios),
-                                null,
-                                drawableUri(R.drawable.radio),
-                                MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS,
                             ),
                             null,
                         )
@@ -1805,54 +1779,6 @@ class MediaLibrarySessionCallback
                 .onEach { onlineSearchItemCache[it.id] = it.toMediaItem() }
         }
 
-        private suspend fun homeMixesAndRadios(includeOnline: Boolean): List<MediaItem> {
-            val localPlaylists =
-                database
-                    .playlists(PlaylistSortType.LAST_UPDATED, descending = true)
-                    .first()
-                    .take(AUTO_HOME_PLAYLIST_LIMIT)
-                    .map { playlist ->
-                        queueMediaItem(
-                            "${MusicService.PLAYLIST}/${playlist.id}",
-                            playlist.playlist.name,
-                            context.resources.getQuantityString(
-                                R.plurals.n_song,
-                                playlist.songCount,
-                                playlist.songCount,
-                            ),
-                            playlist.thumbnails.firstOrNull()?.toUri(),
-                            MediaMetadata.MEDIA_TYPE_PLAYLIST,
-                        )
-                    }
-            val onlinePlaylists = if (includeOnline) homeOnlinePlaylists() else emptyList()
-            return localPlaylists + onlinePlaylists
-        }
-
-        private suspend fun homeOnlinePlaylists(): List<MediaItem> {
-            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-            val hideVideo = context.dataStore.get(HideVideoKey, false)
-            return YouTube
-                .home()
-                .getOrNull()
-                ?.sections
-                .orEmpty()
-                .flatMap { it.items }
-                .filterExplicit(hideExplicit)
-                .filterVideo(hideVideo)
-                .filterIsInstance<PlaylistItem>()
-                .distinctBy { it.id }
-                .take(AUTO_HOME_PLAYLIST_LIMIT)
-                .map { playlist ->
-                    queueMediaItem(
-                        "${MusicService.ONLINE_PLAYLIST}/${playlist.id}",
-                        playlist.title,
-                        playlist.songCountText ?: playlist.author?.name,
-                        playlist.thumbnail?.toUri(),
-                        MediaMetadata.MEDIA_TYPE_PLAYLIST,
-                    )
-                }
-        }
-
         private suspend fun onlinePlaylistChildren(parentId: String): List<MediaItem> {
             val path = parentId.pathSegments()
             val playlistId = path.getOrNull(1) ?: return emptyList()
@@ -2391,7 +2317,6 @@ class MediaLibrarySessionCallback
             private const val CONTENT_STYLE_LIST_ITEM = 1
             private const val CONTENT_STYLE_GRID_ITEM = 2
             private const val AUTO_BROWSE_LIMIT = 100
-            private const val AUTO_HOME_PLAYLIST_LIMIT = 20
             private const val HOME_RECENT_WINDOW_MS = 86400000L * 14L
             private const val PLAYLIST_ACTION_SHUFFLE = "_shuffle"
             private const val PLAYLIST_ACTION_SORT = "_sort"
