@@ -63,12 +63,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEachIndexed
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.exoplayer.offline.Download
@@ -107,7 +104,6 @@ import moe.rukamori.archivetune.ui.utils.ItemWrapper
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.ui.utils.headerDownloadState
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.ui.utils.sendAddMissingDownloads
 import moe.rukamori.archivetune.ui.utils.sendRemoveDownloads
 import moe.rukamori.archivetune.utils.makeTimeString
@@ -259,22 +255,10 @@ fun AlbumScreen(
             val hasSongs = albumWithSongs?.songs?.isNotEmpty() == true
             if (hasSongs) {
                 item(key = "header") {
+                    // Pixel Notes: khinsider has no artist pages, so the names are plain text.
                     val artistNames =
                         remember(albumWithSongs.artists) {
-                            buildAnnotatedString {
-                                albumWithSongs.artists.fastForEachIndexed { index, artist ->
-                                    withLink(
-                                        LinkAnnotation.Clickable(artist.id) {
-                                            navController.navigateToArtist(artist.id)
-                                        },
-                                    ) {
-                                        append(artist.name)
-                                    }
-                                    if (index != albumWithSongs.artists.lastIndex) {
-                                        append(", ")
-                                    }
-                                }
-                            }
+                            AnnotatedString(albumWithSongs.artists.joinToString(", ") { it.name })
                         }
                     val totalDuration = albumWithSongs.songs.sumOf { it.song.duration }
                     val metadata =
