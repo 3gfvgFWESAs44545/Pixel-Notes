@@ -200,7 +200,6 @@ fun LibraryScreen(
                     onTabSelected = { targetFilter ->
                         when (targetFilter) {
                             LibraryFilter.ALBUMS -> navController.navigate(LibraryAlbumsRoute)
-                            LibraryFilter.ARTISTS -> navController.navigate(LibraryArtistsRoute)
                             LibraryFilter.PLAYLISTS -> navController.navigate(LibraryPlaylistsRoute)
                             else -> Unit
                         }

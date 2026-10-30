@@ -28,7 +28,6 @@ import androidx.navigation.NavController
 import moe.rukamori.archivetune.R
 
 const val LibraryPlaylistsRoute = "library_playlists"
-const val LibraryArtistsRoute = "library_artists"
 const val LibraryAlbumsRoute = "library_albums"
 
 @Composable
@@ -48,16 +47,6 @@ fun LibraryPlaylistsPage(navController: NavController) {
             navController = navController,
             filterContent = null,
             selectedTagIds = emptySet(),
-        )
-    }
-}
-
-@Composable
-fun LibraryArtistsPage(navController: NavController) {
-    LibraryStandalonePage(title = "Liked artists", navController = navController) {
-        LibraryArtistsScreen(
-            navController = navController,
-            onDeselect = { navController.navigateUp() },
         )
     }
 }

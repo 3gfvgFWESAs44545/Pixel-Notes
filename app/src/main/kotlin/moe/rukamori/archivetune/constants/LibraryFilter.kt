@@ -9,7 +9,6 @@ package moe.rukamori.archivetune.constants
 
 enum class LibraryFilter {
     SONGS,
-    ARTISTS,
     ALBUMS,
     PLAYLISTS,
     LIBRARY,

@@ -187,7 +187,6 @@ enum class PlaylistSuggestionSource {
     BOTH,
 }
 
-val AppLanguageKey = stringPreferencesKey("appLanguage")
 val UseSystemLanguageKey = booleanPreferencesKey("useSystemLanguage")
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
@@ -286,17 +285,12 @@ val SongSortTypeKey = stringPreferencesKey("songSortType")
 val SongSortDescendingKey = booleanPreferencesKey("songSortDescending")
 val AutoPlaylistSongSortTypeKey = stringPreferencesKey("autoPlaylistSongSortType")
 val AutoPlaylistSongSortDescendingKey = booleanPreferencesKey("autoPlaylistSongSortDescending")
-val ArtistSortTypeKey = stringPreferencesKey("artistSortType")
-val ArtistSortDescendingKey = booleanPreferencesKey("artistSortDescending")
 val AlbumSortTypeKey = stringPreferencesKey("albumSortType")
 val AlbumSortDescendingKey = booleanPreferencesKey("albumSortDescending")
 val PlaylistSortTypeKey = stringPreferencesKey("playlistSortType")
 val PlaylistSortDescendingKey = booleanPreferencesKey("playlistSortDescending")
-val ArtistSongSortTypeKey = stringPreferencesKey("artistSongSortType")
-val ArtistSongSortDescendingKey = booleanPreferencesKey("artistSongSortDescending")
 
 val SongFilterKey = stringPreferencesKey("songFilter")
-val ArtistFilterKey = stringPreferencesKey("artistFilter")
 val AlbumFilterKey = stringPreferencesKey("albumFilter")
 
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
@@ -316,11 +310,6 @@ enum class SongFilter {
     LIBRARY,
     LIKED,
     DOWNLOADED,
-}
-
-enum class ArtistFilter {
-    LIBRARY,
-    LIKED,
 }
 
 enum class AlbumFilter {

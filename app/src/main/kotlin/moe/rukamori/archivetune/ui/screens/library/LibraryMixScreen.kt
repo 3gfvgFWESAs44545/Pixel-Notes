@@ -120,7 +120,6 @@ fun LibraryMixScreen(
     val topPlaylistTitle = remember(myTopTitle, topSize) { "$myTopTitle $topSize" }
 
     val albums by viewModel.albums.collectAsStateWithLifecycle()
-    val artists by viewModel.artists.collectAsStateWithLifecycle()
     val playlists by viewModel.playlists.collectAsStateWithLifecycle()
     val refreshState by viewModel.refreshState.collectAsStateWithLifecycle()
     val refreshLibrary = remember(viewModel) { { viewModel.syncAllLibrary() } }
@@ -253,16 +252,6 @@ fun LibraryMixScreen(
                                 iconColor = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.weight(1f),
                                 onClick = { navController.navigate("history") },
-                            )
-
-                            ShortcutCard(
-                                title = "Liked artists",
-                                countText = "${artists.size} artists",
-                                iconRes = R.drawable.person,
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
-                                iconColor = MaterialTheme.colorScheme.tertiary,
-                                modifier = Modifier.weight(1f),
-                                onClick = { navController.navigate(LibraryArtistsRoute) },
                             )
                         }
 
@@ -517,109 +506,6 @@ fun LibraryMixScreen(
                 }
 
                 // 5. Your Artists Row
-                if (artists.isNotEmpty()) {
-                    item(key = "your_artists") {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 24.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.your_artists),
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                )
-                                Text(
-                                    text = stringResource(R.string.see_all),
-                                    style =
-                                        MaterialTheme.typography.labelMedium.copy(
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.primary,
-                                        ),
-                                    modifier =
-                                        Modifier
-                                            .clip(CircleShape)
-                                            .clickable { navController.navigate(LibraryArtistsRoute) }
-                                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                                )
-                            }
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 24.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                items(artists.take(10)) { item ->
-                                    val artist = item.artist
-                                    Column(
-                                        modifier =
-                                            Modifier
-                                                .width(80.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                    ) {
-                                        AsyncImage(
-                                            model = artist.thumbnailUrl,
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Crop,
-                                            modifier =
-                                                Modifier
-                                                    .size(72.dp)
-                                                    .clip(CircleShape),
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = artist.name,
-                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                            color = MaterialTheme.colorScheme.onBackground,
-                                        )
-                                    }
-                                }
-
-                                // Ending "+" button
-                                item {
-                                    Column(
-                                        modifier =
-                                            Modifier
-                                                .width(80.dp)
-                                                .clickable {
-                                                    navController.navigate(LibraryArtistsRoute)
-                                                },
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                    ) {
-                                        Box(
-                                            modifier =
-                                                Modifier
-                                                    .size(72.dp)
-                                                    .clip(CircleShape)
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.add),
-                                                contentDescription = stringResource(R.string.more_label),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.size(24.dp),
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = stringResource(R.string.more_label),
-                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                            color = MaterialTheme.colorScheme.onBackground,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
 

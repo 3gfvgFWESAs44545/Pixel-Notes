@@ -142,6 +142,5 @@ private fun LibraryFilter.labelResId(): Int =
         LibraryFilter.LIBRARY -> R.string.filter_library
         LibraryFilter.PLAYLISTS -> R.string.playlists
         LibraryFilter.SONGS -> R.string.songs
-        LibraryFilter.ARTISTS -> R.string.artists
         LibraryFilter.ALBUMS -> R.string.albums
     }

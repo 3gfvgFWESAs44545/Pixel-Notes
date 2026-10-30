@@ -40,11 +40,6 @@ import moe.rukamori.archivetune.constants.AlbumFilterKey
 import moe.rukamori.archivetune.constants.AlbumSortDescendingKey
 import moe.rukamori.archivetune.constants.AlbumSortType
 import moe.rukamori.archivetune.constants.AlbumSortTypeKey
-import moe.rukamori.archivetune.constants.ArtistFilter
-import moe.rukamori.archivetune.constants.ArtistFilterKey
-import moe.rukamori.archivetune.constants.ArtistSortDescendingKey
-import moe.rukamori.archivetune.constants.ArtistSortType
-import moe.rukamori.archivetune.constants.ArtistSortTypeKey
 import moe.rukamori.archivetune.constants.HideExplicitKey
 import moe.rukamori.archivetune.constants.HideVideoKey
 import moe.rukamori.archivetune.constants.LibraryFilter
@@ -230,59 +225,6 @@ class LibrarySongsViewModel
                 SongFilter.LIKED -> refreshLibrary(LibrarySyncTarget.LikedSongs)
                 SongFilter.LIBRARY -> refreshLibrary(LibrarySyncTarget.Songs)
                 SongFilter.DOWNLOADED -> Unit
-            }
-        }
-    }
-
-@HiltViewModel
-class LibraryArtistsViewModel
-    @Inject
-    constructor(
-        @ApplicationContext context: Context,
-        database: MusicDatabase,
-        refreshLibrary: RefreshLibraryUseCase,
-    ) : LibraryRefreshViewModel(refreshLibrary) {
-
-        val allArtists =
-            context.dataStore.data
-                .map {
-                    Triple(
-                        it[ArtistFilterKey].toEnum(ArtistFilter.LIKED),
-                        it[ArtistSortTypeKey].toEnum(ArtistSortType.CREATE_DATE),
-                        it[ArtistSortDescendingKey] ?: true,
-                    )
-                }.distinctUntilChanged()
-                .flatMapLatest { (filter, sortType, descending) ->
-                    when (filter) {
-                        ArtistFilter.LIBRARY -> database.artists(sortType, descending)
-                        ArtistFilter.LIKED -> database.artistsBookmarked(sortType, descending)
-                    }
-                }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-        fun refresh(filter: ArtistFilter) {
-            refreshLibrary(
-                if (filter == ArtistFilter.LIBRARY) LibrarySyncTarget.All else LibrarySyncTarget.Artists,
-            )
-        }
-
-        init {
-            viewModelScope.launch(Dispatchers.IO) {
-                allArtists.collect { artists ->
-                    artists
-                        .map { it.artist }
-                        .filter {
-                            it.thumbnailUrl == null || Duration.between(
-                                it.lastUpdateTime,
-                                LocalDateTime.now(),
-                            ) > Duration.ofDays(10)
-                        }.forEach { artist ->
-                            YouTube.artist(artist.id).onSuccess { artistPage ->
-                                database.query {
-                                    update(artist, artistPage)
-                                }
-                            }
-                        }
-                }
             }
         }
     }
@@ -528,12 +470,6 @@ class LibraryMixViewModel
             context.dataStore.data
                 .map { it[TopSize] ?: "50" }
                 .distinctUntilChanged()
-        var artists =
-            database
-                .artistsBookmarked(
-                    ArtistSortType.CREATE_DATE,
-                    true,
-                ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
         var albums =
             context.dataStore.data
                 .map { it[HideExplicitKey] ?: false }

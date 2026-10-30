@@ -609,24 +609,6 @@ interface DatabaseDao {
         toTimeStamp: Long? = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli(),
     ): Flow<List<Album>>
 
-    @Transaction
-    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query(
-        """
-        SELECT album.*, count(song.dateDownload) downloadCount
-        FROM album_artist_map 
-            JOIN album ON album_artist_map.albumId = album.id
-            JOIN song ON album_artist_map.albumId = song.albumId
-        WHERE artistId = COALESCE((SELECT targetId FROM local_music_alias WHERE sourceId = :artistId AND kind = 'artist'), :artistId)
-        GROUP BY album.id
-        LIMIT :previewSize
-    """,
-    )
-    fun artistAlbumsPreview(
-        artistId: String,
-        previewSize: Int = 6,
-    ): Flow<List<Album>>
-
     @Query("SELECT count from playCount WHERE song = :songId AND year = :year AND month = :month")
     fun getPlayCountByMonth(
         songId: String?,
@@ -798,51 +780,6 @@ interface DatabaseDao {
     )
     fun artistsByPlayTimeAsc(): Flow<List<Artist>>
 
-    @Transaction
-    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query(
-        "SELECT *, (SELECT COUNT(1) FROM library_song_artist_map JOIN song ON library_song_artist_map.songId = song.id WHERE artistId = artist.id AND (song.inLibrary IS NOT NULL OR song.isLocal = 1)) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY bookmarkedAt",
-    )
-    fun artistsBookmarkedByCreateDateAsc(): Flow<List<Artist>>
-
-    @Transaction
-    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query(
-        "SELECT *, (SELECT COUNT(1) FROM library_song_artist_map JOIN song ON library_song_artist_map.songId = song.id WHERE artistId = artist.id AND (song.inLibrary IS NOT NULL OR song.isLocal = 1)) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY name",
-    )
-    fun artistsBookmarkedByNameAsc(): Flow<List<Artist>>
-
-    @Transaction
-    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query(
-        "SELECT *, (SELECT COUNT(1) FROM library_song_artist_map JOIN song ON library_song_artist_map.songId = song.id WHERE artistId = artist.id AND (song.inLibrary IS NOT NULL OR song.isLocal = 1)) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY songCount",
-    )
-    fun artistsBookmarkedBySongCountAsc(): Flow<List<Artist>>
-
-    @Transaction
-    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query(
-        """
-        SELECT artist.*,
-               (SELECT COUNT(1)
-                FROM library_song_artist_map
-                         JOIN song ON library_song_artist_map.songId = song.id
-                WHERE artistId = artist.id
-                  AND (song.inLibrary IS NOT NULL OR song.isLocal = 1)) AS songCount
-        FROM artist
-                 LEFT JOIN(SELECT artistId, SUM(totalPlayTime) AS totalPlayTime
-                      FROM library_song_artist_map
-                               JOIN song
-                                    ON library_song_artist_map.songId = song.id
-                      GROUP BY artistId
-                      ORDER BY totalPlayTime)
-                     ON artist.id = artistId
-        WHERE bookmarkedAt IS NOT NULL
-        ORDER BY COALESCE(totalPlayTime, 0)
-    """,
-    )
-    fun artistsBookmarkedByPlayTimeAsc(): Flow<List<Artist>>
-
     fun artists(
         sortType: ArtistSortType,
         descending: Boolean,
@@ -851,20 +788,6 @@ interface DatabaseDao {
         ArtistSortType.NAME -> artistsByNameAsc()
         ArtistSortType.SONG_COUNT -> artistsBySongCountAsc()
         ArtistSortType.PLAY_TIME -> artistsByPlayTimeAsc()
-    }.map { artists ->
-        artists
-            .filter { it.artist.blockedAt == null && (it.artist.isYouTubeArtist || it.artist.isLocal) }
-            .reversed(descending)
-    }
-
-    fun artistsBookmarked(
-        sortType: ArtistSortType,
-        descending: Boolean,
-    ) = when (sortType) {
-        ArtistSortType.CREATE_DATE -> artistsBookmarkedByCreateDateAsc()
-        ArtistSortType.NAME -> artistsBookmarkedByNameAsc()
-        ArtistSortType.SONG_COUNT -> artistsBookmarkedBySongCountAsc()
-        ArtistSortType.PLAY_TIME -> artistsBookmarkedByPlayTimeAsc()
     }.map { artists ->
         artists
             .filter { it.artist.blockedAt == null && (it.artist.isYouTubeArtist || it.artist.isLocal) }
@@ -2118,13 +2041,6 @@ interface DatabaseDao {
     @Transaction
     @Query("SELECT DISTINCT playlistId FROM playlist_tag_map WHERE tagId IN (:tagIds)")
     fun playlistIdsByTags(tagIds: List<String>): Flow<List<String>>
-
-    @Transaction
-    @Query("SELECT COUNT(*) FROM playlist_tag_map WHERE playlistId = :playlistId AND tagId = :tagId")
-    fun isPlaylistTagged(
-        playlistId: String,
-        tagId: String,
-    ): Flow<Int>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(tag: TagEntity)

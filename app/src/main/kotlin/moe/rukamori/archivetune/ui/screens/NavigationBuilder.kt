@@ -303,9 +303,6 @@ fun NavGraphBuilder.navigationBuilder(
     composable(moe.rukamori.archivetune.ui.screens.library.LibraryPlaylistsRoute) {
         moe.rukamori.archivetune.ui.screens.library.LibraryPlaylistsPage(navController)
     }
-    composable(moe.rukamori.archivetune.ui.screens.library.LibraryArtistsRoute) {
-        moe.rukamori.archivetune.ui.screens.library.LibraryArtistsPage(navController)
-    }
     composable(moe.rukamori.archivetune.ui.screens.library.LibraryAlbumsRoute) {
         moe.rukamori.archivetune.ui.screens.library.LibraryAlbumsPage(navController)
     }
