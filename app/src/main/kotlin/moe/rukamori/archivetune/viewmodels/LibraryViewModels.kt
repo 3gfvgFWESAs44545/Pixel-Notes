@@ -73,8 +73,6 @@ import moe.rukamori.archivetune.utils.get
 import moe.rukamori.archivetune.utils.isLocalMediaId
 import moe.rukamori.archivetune.utils.reportException
 import java.text.Collator
-import java.time.Duration
-import java.time.LocalDateTime
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
@@ -506,25 +504,6 @@ class LibraryMixViewModel
                                         }
                                     }
                                 }
-                        }
-                }
-            }
-            viewModelScope.launch(Dispatchers.IO) {
-                artists.collect { artists ->
-                    artists
-                        .map { it.artist }
-                        .filter {
-                            it.thumbnailUrl == null ||
-                                Duration.between(
-                                    it.lastUpdateTime,
-                                    LocalDateTime.now(),
-                                ) > Duration.ofDays(10)
-                        }.forEach { artist ->
-                            YouTube.artist(artist.id).onSuccess { artistPage ->
-                                database.query {
-                                    update(artist, artistPage)
-                                }
-                            }
                         }
                 }
             }
