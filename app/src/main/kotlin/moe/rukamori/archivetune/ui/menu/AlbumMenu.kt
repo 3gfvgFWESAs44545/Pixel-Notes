@@ -152,7 +152,6 @@ fun AlbumMenu(
         label = "",
     )
 
-    // Artist separators for splitting artist names
     val (speedDialSongIds, onSpeedDialSongIdsChange) = rememberPreference(SpeedDialSongIdsKey, "")
     val speedDialPins = remember(speedDialSongIds) { parseSpeedDialPins(speedDialSongIds) }
     val albumPin = remember(album.id) { SpeedDialPin(type = SpeedDialPinType.ALBUM, id = album.id) }
@@ -160,6 +159,8 @@ fun AlbumMenu(
         remember(speedDialPins, albumPin) {
             speedDialPins.any { it.type == albumPin.type && it.id == albumPin.id }
         }
+    val isLocalAlbum = album.album.isLocal
+
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }

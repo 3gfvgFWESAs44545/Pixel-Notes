@@ -159,6 +159,8 @@ fun PlayerMenu(
         remember(librarySong?.song?.isLocal, mediaMetadata.id) {
             librarySong?.song?.isLocal == true || mediaMetadata.id.isLocalMediaId()
         }
+    val castPlayerMenuAction = rememberCastPlayerMenuAction()
+
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
