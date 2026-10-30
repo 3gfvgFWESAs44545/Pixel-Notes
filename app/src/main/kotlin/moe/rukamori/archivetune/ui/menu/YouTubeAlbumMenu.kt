@@ -149,6 +149,8 @@ fun YouTubeAlbumMenu(
     val isInSpeedDial =
         remember(speedDialPins, albumPin) {
             speedDialPins.any { it.type == albumPin.type && it.id == albumPin.id }
+        }
+
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
