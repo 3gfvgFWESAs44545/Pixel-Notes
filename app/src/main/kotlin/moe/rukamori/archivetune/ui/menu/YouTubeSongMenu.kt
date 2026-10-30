@@ -18,7 +18,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -28,7 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -57,10 +55,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
@@ -76,35 +72,22 @@ import moe.rukamori.archivetune.LocalDownloadUtil
 import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.LocalSyncUtils
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.constants.ArtistSeparatorsKey
-import moe.rukamori.archivetune.constants.ExternalDownloaderEnabledKey
-import moe.rukamori.archivetune.constants.ExternalDownloaderPackageKey
-import moe.rukamori.archivetune.constants.ListItemHeight
 import moe.rukamori.archivetune.constants.ListThumbnailSize
-import moe.rukamori.archivetune.constants.SpeedDialSongIdsKey
 import moe.rukamori.archivetune.constants.ThumbnailCornerRadius
 import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.innertube.models.SongItem
-import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.models.toMediaMetadata
 import moe.rukamori.archivetune.playback.ExoDownloadService
-import moe.rukamori.archivetune.playback.queues.YouTubeQueue
-import moe.rukamori.archivetune.ui.component.ListDialog
 import moe.rukamori.archivetune.ui.component.LocalBottomSheetPageState
 import moe.rukamori.archivetune.ui.component.MenuSurfaceSection
 import moe.rukamori.archivetune.ui.component.NewAction
 import moe.rukamori.archivetune.ui.component.NewActionGrid
 import moe.rukamori.archivetune.ui.utils.ShowMediaInfo
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
-import moe.rukamori.archivetune.utils.ExternalDownloaderLaunchResult
 import moe.rukamori.archivetune.utils.SpeedDialPin
 import moe.rukamori.archivetune.utils.SpeedDialPinType
 import moe.rukamori.archivetune.utils.joinByBullet
 import moe.rukamori.archivetune.utils.makeTimeString
-import moe.rukamori.archivetune.utils.openExternalDownloader
-import moe.rukamori.archivetune.utils.parseSpeedDialPins
-import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.utils.serializeSpeedDialPins
 import moe.rukamori.archivetune.utils.toggleSpeedDialPin
 import timber.log.Timber
@@ -124,56 +107,10 @@ fun YouTubeSongMenu(
     val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
     val syncUtils = LocalSyncUtils.current
-    val artists =
-        remember {
-            song.artists.mapNotNull {
-                it.id?.let { artistId ->
-                    MediaMetadata.Artist(id = artistId, name = it.name)
-                }
-            }
-        }
-
-    // Artist separators for splitting artist names
-    val (artistSeparators) = rememberPreference(ArtistSeparatorsKey, defaultValue = ",;/&")
-    val externalDownloaderEnabled = false // Pixel Notes: external downloader removed
-    val (externalDownloaderPackage) = rememberPreference(ExternalDownloaderPackageKey, defaultValue = "")
-    val (speedDialSongIds, onSpeedDialSongIdsChange) = rememberPreference(SpeedDialSongIdsKey, "")
-    val speedDialPins = remember(speedDialSongIds) { parseSpeedDialPins(speedDialSongIds) }
     val songPin = remember(song.id) { SpeedDialPin(type = SpeedDialPinType.SONG, id = song.id) }
     val isInSpeedDial =
         remember(speedDialPins, songPin) {
             speedDialPins.any { it.type == songPin.type && it.id == songPin.id }
-        }
-
-    // Split artists by configured separators
-    data class SplitArtist(
-        val name: String,
-        val originalArtist: MediaMetadata.Artist?,
-    )
-
-    val splitArtists =
-        remember(artists, artistSeparators) {
-            if (artistSeparators.isEmpty()) {
-                artists.map { SplitArtist(it.name, it) }
-            } else {
-                val separatorRegex = "[${Regex.escape(artistSeparators)}]".toRegex()
-                artists.flatMap { artist ->
-                    val parts =
-                        artist.name
-                            .split(separatorRegex)
-                            .map { it.trim() }
-                            .filter { it.isNotEmpty() }
-                    if (parts.size > 1) {
-                        parts.mapIndexed { index, name ->
-                            SplitArtist(name, if (index == 0) artist else null)
-                        }
-                    } else {
-                        listOf(SplitArtist(artist.name, artist))
-                    }
-                }
-            }
-        }
-
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -196,49 +133,6 @@ fun YouTubeSongMenu(
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         },
     )
-
-    var showSelectArtistDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    if (showSelectArtistDialog) {
-        ListDialog(
-            onDismiss = { showSelectArtistDialog = false },
-        ) {
-            items(splitArtists.distinctBy { it.name }) { splitArtist ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier =
-                        Modifier
-                            .height(ListItemHeight)
-                            .clickable {
-                                splitArtist.originalArtist?.let { artist ->
-                                    navController.navigateToArtist(artist.id)
-                                    showSelectArtistDialog = false
-                                    onDismiss()
-                                }
-                            }.padding(horizontal = 12.dp),
-                ) {
-                    Box(
-                        contentAlignment = Alignment.CenterStart,
-                        modifier =
-                            Modifier
-                                .fillParentMaxWidth()
-                                .height(ListItemHeight)
-                                .padding(horizontal = 24.dp),
-                    ) {
-                        Text(
-                            text = splitArtist.name,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-            }
-        }
-    }
 
     Surface(
         shape = RoundedCornerShape(28.dp),
@@ -679,7 +573,7 @@ fun YouTubeSongMenu(
             }
         }
 
-        if (splitArtists.isNotEmpty() || song.album != null) {
+        if (song.album != null) {
             item {
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -687,35 +581,6 @@ fun YouTubeSongMenu(
             item {
                 MenuSurfaceSection(modifier = Modifier.padding(vertical = 6.dp)) {
                     Column {
-                        if (splitArtists.isNotEmpty()) {
-                            ListItem(
-                                headlineContent = { Text(text = stringResource(R.string.view_artist)) },
-                                leadingContent = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.artist),
-                                        contentDescription = null,
-                                    )
-                                },
-                                modifier =
-                                    Modifier.clickable {
-                                        if (splitArtists.size == 1 && splitArtists[0].originalArtist != null) {
-                                            navController.navigateToArtist(splitArtists[0].originalArtist!!.id)
-                                            onDismiss()
-                                        } else {
-                                            showSelectArtistDialog = true
-                                        }
-                                    },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            )
-                        }
-
-                        if (splitArtists.isNotEmpty() && song.album != null) {
-                            HorizontalDivider(
-                                modifier = dividerModifier,
-                                color = MaterialTheme.colorScheme.outlineVariant,
-                            )
-                        }
-
                         song.album?.let { album ->
                             ListItem(
                                 headlineContent = { Text(text = stringResource(R.string.view_album)) },

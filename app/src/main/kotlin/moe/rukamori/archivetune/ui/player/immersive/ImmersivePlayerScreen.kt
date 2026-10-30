@@ -32,9 +32,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -77,7 +74,6 @@ import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import moe.rukamori.archivetune.R
-import moe.rukamori.archivetune.ui.component.ListDialog
 import moe.rukamori.archivetune.ui.player.LandscapePlayerControls
 import moe.rukamori.archivetune.ui.player.rememberOfflineArtworkImageRequest
 import moe.rukamori.archivetune.utils.makeTimeString
@@ -150,24 +146,6 @@ private fun ImmersivePlayerContent(
     onAction: (ImmersivePlayerAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (model.showArtistDialog) {
-        val artists = remember(model.artists) {
-            model.artists.filter { !it.id.isNullOrBlank() }.distinctBy { it.id }
-        }
-        ListDialog(onDismiss = { onAction(ImmersivePlayerAction.DismissArtistDialog) }) {
-            items(artists, key = { requireNotNull(it.id) }, contentType = { "artist" }) { artist ->
-                ListItem(
-                    headlineContent = {
-                        Text(text = artist.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        onAction(ImmersivePlayerAction.OpenArtist(requireNotNull(artist.id)))
-                    },
-                )
-            }
-        }
-    }
     BoxWithConstraints(modifier = modifier.background(Color.Black)) {
         val landscape = maxWidth > maxHeight
         if (landscape) {
@@ -559,12 +537,7 @@ private fun MetadataRow(
                 fontSize = 19.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier =
-                    Modifier
-                        .basicMarquee()
-                        .clickable(enabled = artists.any { !it.id.isNullOrBlank() }) {
-                            onAction(ImmersivePlayerAction.OpenArtists)
-                        },
+                modifier = Modifier.basicMarquee(),
             )
         }
         IconButton(onClick = { onAction(ImmersivePlayerAction.ToggleLike) }) {

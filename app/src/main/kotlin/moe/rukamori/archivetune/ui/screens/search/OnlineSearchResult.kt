@@ -89,7 +89,6 @@ import moe.rukamori.archivetune.ui.menu.YouTubeArtistMenu
 import moe.rukamori.archivetune.ui.menu.YouTubePlaylistMenu
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.viewmodels.OnlineSearchSort
 import moe.rukamori.archivetune.viewmodels.OnlineSearchViewModel
 
@@ -234,9 +233,7 @@ fun OnlineSearchResult(
                                     navController.navigateToAlbum(item.id)
                                 }
 
-                                is ArtistItem -> {
-                                    navController.navigateToArtist(item.id)
-                                }
+                                is ArtistItem -> Unit
 
                                 is PlaylistItem -> {
                                     navController.navigate("online_playlist/${item.id}")

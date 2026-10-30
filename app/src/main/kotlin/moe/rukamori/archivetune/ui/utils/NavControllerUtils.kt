@@ -11,10 +11,6 @@ import android.net.Uri
 import androidx.navigation.NavController
 import moe.rukamori.archivetune.ui.screens.Screens
 
-internal fun NavController.navigateToArtist(artistId: String?) {
-    navigateToMediaDetail(artistId, "artist")
-}
-
 internal fun NavController.navigateToAlbum(albumId: String?) {
     navigateToMediaDetail(albumId, "album")
 }

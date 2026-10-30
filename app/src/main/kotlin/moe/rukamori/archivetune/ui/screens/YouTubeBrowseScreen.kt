@@ -80,7 +80,6 @@ import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.utils.SnapLayoutInfoProvider
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.viewmodels.YouTubeBrowseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -226,7 +225,7 @@ fun YouTubeBrowseScreen(
                                                     onClick = {
                                                         when (item) {
                                                             is AlbumItem -> navController.navigateToAlbum(item.id)
-                                                            is ArtistItem -> navController.navigateToArtist(item.id)
+                                                            is ArtistItem -> Unit
                                                             is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                                                             is PodcastItem -> Unit
                                                             is EpisodeItem -> {

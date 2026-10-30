@@ -72,11 +72,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -121,9 +119,7 @@ import moe.rukamori.archivetune.ui.utils.HeaderDownloadProgressIndicator
 import moe.rukamori.archivetune.ui.utils.HeaderDownloadState
 import moe.rukamori.archivetune.ui.utils.ItemWrapper
 import moe.rukamori.archivetune.ui.utils.backToMain
-import moe.rukamori.archivetune.ui.utils.formatCompactCount
 import moe.rukamori.archivetune.ui.utils.headerDownloadState
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.ui.utils.sendAddMissingDownloads
 import moe.rukamori.archivetune.ui.utils.sendRemoveDownloads
 import moe.rukamori.archivetune.utils.rememberPreference
@@ -376,21 +372,7 @@ fun OnlinePlaylistScreen(
                         item(key = "header") {
                             val author =
                                 playlist.author?.let { artist ->
-                                    remember(artist) {
-                                        buildAnnotatedString {
-                                            if (artist.id != null) {
-                                                withLink(
-                                                    LinkAnnotation.Clickable(artist.id!!) {
-                                                        navController.navigateToArtist(artist.id)
-                                                    },
-                                                ) {
-                                                    append(artist.name)
-                                                }
-                                            } else {
-                                                append(artist.name)
-                                            }
-                                        }
-                                    }
+                                    remember(artist) { AnnotatedString(artist.name) }
                                 }
                             val isBookmarked = dbPlaylist?.playlist?.bookmarkedAt != null
                             val fallbackPlaySong = songs.firstOrNull()

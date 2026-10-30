@@ -142,7 +142,6 @@ import moe.rukamori.archivetune.ui.menu.YouTubePlaylistMenu
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.utils.YtimgResizePolicy
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.ui.utils.resize
 import moe.rukamori.archivetune.utils.joinByBullet
 import moe.rukamori.archivetune.utils.makeTimeString
@@ -1181,9 +1180,7 @@ fun SpeedDialSection(
                                                                         navController.navigateToAlbum(localItem.id)
                                                                     }
 
-                                                                    is Artist -> {
-                                                                        navController.navigateToArtist(localItem.id)
-                                                                    }
+                                                                    is Artist -> Unit
 
                                                                     is Playlist -> {
                                                                         navController.navigate("local_playlist/${localItem.id}")
@@ -1408,7 +1405,7 @@ private fun KeepListeningResumeCard(
                     }
 
                     is Album -> navController.navigateToAlbum(item.id)
-                    is Artist -> navController.navigateToArtist(item.id)
+                    is Artist -> Unit
                     is Playlist -> navController.navigate("local_playlist/${item.id}")
                 }
             }
@@ -1778,7 +1775,7 @@ private fun SimilarDiscoveryDeck(
             when (source) {
                 is Song -> source.album?.id?.let { albumId -> ({ navController.navigateToAlbum(albumId) }) }
                 is Album -> ({ navController.navigateToAlbum(source.id) })
-                is Artist -> ({ navController.navigateToArtist(source.id) })
+                is Artist -> null
                 is Playlist -> ({ navController.navigate("local_playlist/${source.id}") })
             }
         }
@@ -2201,9 +2198,7 @@ private fun YouTubeGridItemWrapper(
                                 navController.navigateToAlbum(item.id)
                             }
 
-                            is ArtistItem -> {
-                                navController.navigateToArtist(item.id)
-                            }
+                            is ArtistItem -> Unit
 
                             is PlaylistItem -> {
                                 navController.navigate("online_playlist/${item.id}")

@@ -275,7 +275,6 @@ fun PlayerTitleSection(
 
     ClickableArtists(
         artists = mediaMetadata.artists,
-        onArtistClick = actions.onArtistClick,
         style = MaterialTheme.typography.titleMedium.copy(color = textBackgroundColor, fontSize = 16.sp),
         onLongClick = actions.onCopyArtists,
         modifier =
@@ -2064,7 +2063,6 @@ fun V8PlayerControlsContent(
         }
     val titleActions = rememberPlayerTitleActions(mediaMetadata, navController, state)
     val onTitleClick = titleActions.onTitleClick
-    val onArtistClick = titleActions.onArtistClick
     val onPlayPauseClick =
         remember(playbackState, playerConnection) {
             {
@@ -2136,7 +2134,6 @@ fun V8PlayerControlsContent(
                 onMenuClick = onMenuClick,
                 onToggleLike = onToggleLike,
                 onTitleClick = onTitleClick,
-                onArtistClick = onArtistClick,
             )
 
             Spacer(Modifier.height(contentGap))
@@ -2236,7 +2233,6 @@ fun V8PlayerContent(
 
     val titleActions = rememberPlayerTitleActions(mediaMetadata, navController, state)
     val onTitleClick = titleActions.onTitleClick
-    val onArtistClick = titleActions.onArtistClick
 
     if (landscape) {
         V8LandscapeContent(
@@ -2261,7 +2257,6 @@ fun V8PlayerContent(
             onMenuClick = onMenuClick,
             onToggleLike = playerConnection::toggleLike,
             onTitleClick = onTitleClick,
-            onArtistClick = onArtistClick,
             onPreviousClick = playerConnection::seekToPrevious,
             onNextClick = playerConnection::seekToNext,
             onPlayPauseClick = {
@@ -2300,7 +2295,6 @@ fun V8PlayerContent(
             onMenuClick = onMenuClick,
             onToggleLike = playerConnection::toggleLike,
             onTitleClick = onTitleClick,
-            onArtistClick = onArtistClick,
             onPreviousClick = playerConnection::seekToPrevious,
             onNextClick = playerConnection::seekToNext,
             onPlayPauseClick = {
@@ -2348,7 +2342,6 @@ private fun V8PortraitContent(
     onSliderValueChangeFinished: () -> Unit,
     onVolumeChange: (Float) -> Unit,
     onTitleClick: () -> Unit,
-    onArtistClick: (artistId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -2434,7 +2427,6 @@ private fun V8PortraitContent(
                 onMenuClick = onMenuClick,
                 onToggleLike = onToggleLike,
                 onTitleClick = onTitleClick,
-                onArtistClick = onArtistClick,
             )
 
             Spacer(Modifier.height(controlsGap))
@@ -2508,7 +2500,6 @@ private fun V8LandscapeContent(
     onSliderValueChangeFinished: () -> Unit,
     onVolumeChange: (Float) -> Unit,
     onTitleClick: () -> Unit,
-    onArtistClick: (artistId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -2567,7 +2558,6 @@ private fun V8LandscapeContent(
                     onMenuClick = onMenuClick,
                     onToggleLike = onToggleLike,
                     onTitleClick = onTitleClick,
-                    onArtistClick = onArtistClick,
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -2669,7 +2659,6 @@ private fun V8MetadataActions(
     onMenuClick: () -> Unit,
     onToggleLike: () -> Unit,
     onTitleClick: () -> Unit,
-    onArtistClick: (artistId: String) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -2697,7 +2686,6 @@ private fun V8MetadataActions(
             )
             ClickableArtists(
                 artists = artists,
-                onArtistClick = onArtistClick,
                 style = MaterialTheme.typography.titleMedium,
                 color = foreground,
                 modifier = Modifier.basicMarquee(),
@@ -3103,7 +3091,6 @@ fun V9PlayerContent(
     val artworkUrl = thumbnailSwapState.displayUrl
     val titleActions = rememberPlayerTitleActions(mediaMetadata, navController, state)
     val onTitleClick = titleActions.onTitleClick
-    val onArtistClick = titleActions.onArtistClick
     val onPlayPauseClick = {
         if (playbackState == STATE_ENDED) {
             playerConnection.player.seekTo(0, 0)
@@ -3164,7 +3151,6 @@ fun V9PlayerContent(
             onCollapseClick = onCollapseClick,
             onQueueClick = onQueueClick,
             onTitleClick = onTitleClick,
-            onArtistClick = onArtistClick,
             onPreviousClick = playerConnection::seekToPrevious,
             onPlayPauseClick = onPlayPauseClick,
             onNextClick = playerConnection::seekToNext,
@@ -3197,7 +3183,6 @@ fun V9PlayerContent(
             onCollapseClick = onCollapseClick,
             onQueueClick = onQueueClick,
             onTitleClick = onTitleClick,
-            onArtistClick = onArtistClick,
             onPreviousClick = playerConnection::seekToPrevious,
             onPlayPauseClick = onPlayPauseClick,
             onNextClick = playerConnection::seekToNext,
@@ -3236,7 +3221,6 @@ private fun V9PortraitContent(
     onSliderValueChange: (Long) -> Unit,
     onSliderValueChangeFinished: () -> Unit,
     onTitleClick: () -> Unit,
-    onArtistClick: (artistId: String) -> Unit,
     liked: Boolean,
     onToggleLike: () -> Unit,
     modifier: Modifier = Modifier,
@@ -3318,7 +3302,6 @@ private fun V9PortraitContent(
                     )
                     ClickableArtists(
                         artists = artists,
-                        onArtistClick = onArtistClick,
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
                         color = textBackgroundColor.copy(alpha = 0.72f),
                         textAlign = TextAlign.Start,
@@ -3450,7 +3433,6 @@ private fun V9LandscapeContent(
     onSliderValueChange: (Long) -> Unit,
     onSliderValueChangeFinished: () -> Unit,
     onTitleClick: () -> Unit,
-    onArtistClick: (artistId: String) -> Unit,
     shuffleModeEnabled: Boolean,
     repeatMode: Int,
     onShuffleClick: () -> Unit,
@@ -3518,7 +3500,6 @@ private fun V9LandscapeContent(
                     artists = artists,
                     textColor = textBackgroundColor,
                     onTitleClick = onTitleClick,
-                    onArtistClick = onArtistClick,
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -3670,7 +3651,6 @@ private fun V9Metadata(
     artists: List<MediaMetadata.Artist>,
     textColor: Color,
     onTitleClick: () -> Unit,
-    onArtistClick: (artistId: String) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -3696,7 +3676,6 @@ private fun V9Metadata(
         )
         ClickableArtists(
             artists = artists,
-            onArtistClick = onArtistClick,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
             color = textColor.copy(alpha = 0.72f),
             textAlign = TextAlign.Center,
@@ -4427,7 +4406,6 @@ fun V10PlayerContent(
     val artworkUrl = thumbnailSwapState.displayUrl
     val titleActions = rememberPlayerTitleActions(mediaMetadata, navController, state)
     val onTitleClick = titleActions.onTitleClick
-    val onArtistClick = titleActions.onArtistClick
     val onPlayPauseClick = {
         if (playbackState == STATE_ENDED) {
             playerConnection.player.seekTo(0, 0)
@@ -4502,7 +4480,6 @@ fun V10PlayerContent(
                     )
                     ClickableArtists(
                         artists = mediaMetadata.artists,
-                        onArtistClick = onArtistClick,
                         style = MaterialTheme.typography.labelLarge,
                         color = accent.copy(alpha = 0.8f),
                         modifier = Modifier.fillMaxWidth().basicMarquee(),
@@ -4715,7 +4692,6 @@ fun V10PlayerContent(
                 }
                 ClickableArtists(
                     artists = mediaMetadata.artists,
-                    onArtistClick = onArtistClick,
                     style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 2.sp),
                     color = accent.copy(alpha = 0.8f),
                     modifier = Modifier.basicMarquee(

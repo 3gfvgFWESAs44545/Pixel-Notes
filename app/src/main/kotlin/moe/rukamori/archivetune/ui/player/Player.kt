@@ -141,7 +141,6 @@ import moe.rukamori.archivetune.LocalDownloadUtil
 import moe.rukamori.archivetune.LocalPlayerConnection
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.viewmodels.ImmersivePlayerViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import moe.rukamori.archivetune.constants.BackdropBlurAmountKey
@@ -784,10 +783,6 @@ fun BottomSheetPlayer(
                 is ImmersivePlayerEvent.OpenAlbum -> {
                     state.collapseSoft()
                     navController.navigateToAlbum(event.id)
-                }
-                is ImmersivePlayerEvent.OpenArtist -> {
-                    state.collapseSoft()
-                    navController.navigateToArtist(event.id)
                 }
                 ImmersivePlayerEvent.OpenMenu -> {
                     val metadata = mediaMetadata ?: return@collect

@@ -115,7 +115,6 @@ import moe.rukamori.archivetune.ui.menu.ArtistMenu
 import moe.rukamori.archivetune.ui.menu.SongMenu
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.utils.joinByBullet
 import moe.rukamori.archivetune.utils.makeTimeString
 import moe.rukamori.archivetune.viewmodels.StatsScreenState
@@ -513,7 +512,7 @@ fun StatsScreen(
                                     Modifier
                                         .width(164.dp)
                                         .combinedClickable(
-                                            onClick = { navController.navigateToArtist(artist.id) },
+                                            onClick = {},
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 menuState.show {
@@ -1106,7 +1105,6 @@ private fun StatsHighlightsSection(
                 ).lowercase()} • ${makeTimeString(topArtist.timeListened?.toLong())}",
                 imageUrl = topArtist.artist.thumbnailUrl,
                 useCircleShape = true,
-                onClick = { navController.navigateToArtist(topArtist.id) },
             )
         }
         if (topSong != null && topSongEntity != null) {
@@ -1133,14 +1131,9 @@ private fun StatsHighlightCard(
     subText: String,
     imageUrl: String?,
     useCircleShape: Boolean,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
 ) {
-    ElevatedCard(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.elevatedCardColors(),
-    ) {
+    val content: @Composable () -> Unit = {
         Row(
             modifier =
                 Modifier
@@ -1178,6 +1171,20 @@ private fun StatsHighlightCard(
                 )
             }
         }
+    }
+    if (onClick != null) {
+        ElevatedCard(
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.elevatedCardColors(),
+        ) { content() }
+    } else {
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.elevatedCardColors(),
+        ) { content() }
     }
 }
 

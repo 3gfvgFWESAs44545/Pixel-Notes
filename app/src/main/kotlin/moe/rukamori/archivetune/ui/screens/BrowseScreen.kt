@@ -69,7 +69,6 @@ import moe.rukamori.archivetune.ui.menu.YouTubeArtistMenu
 import moe.rukamori.archivetune.ui.menu.YouTubePlaylistMenu
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.viewmodels.BrowseViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -112,7 +111,6 @@ fun BrowseScreen(
             when (event) {
                 is BrowseEvent.OpenAlbum -> navController.navigateToAlbum(event.browseId)
                 is BrowseEvent.OpenPlaylist -> navController.navigate("online_playlist/${event.playlistId}")
-                is BrowseEvent.OpenArtist -> navController.navigateToArtist(event.browseId)
                 is BrowseEvent.PlayEpisode -> {
                     playerConnection.playQueue(
                         ListQueue(

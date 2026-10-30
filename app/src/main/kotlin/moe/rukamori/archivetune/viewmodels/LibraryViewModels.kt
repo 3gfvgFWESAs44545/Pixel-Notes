@@ -13,7 +13,6 @@ import android.content.Context
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.exoplayer.offline.Download
@@ -43,9 +42,6 @@ import moe.rukamori.archivetune.constants.AlbumSortType
 import moe.rukamori.archivetune.constants.AlbumSortTypeKey
 import moe.rukamori.archivetune.constants.ArtistFilter
 import moe.rukamori.archivetune.constants.ArtistFilterKey
-import moe.rukamori.archivetune.constants.ArtistSongSortDescendingKey
-import moe.rukamori.archivetune.constants.ArtistSongSortType
-import moe.rukamori.archivetune.constants.ArtistSongSortTypeKey
 import moe.rukamori.archivetune.constants.ArtistSortDescendingKey
 import moe.rukamori.archivetune.constants.ArtistSortType
 import moe.rukamori.archivetune.constants.ArtistSortTypeKey
@@ -471,40 +467,6 @@ class LibraryPlaylistsViewModel
             context.dataStore.data
                 .map { it[TopSize] ?: "50" }
                 .distinctUntilChanged()
-    }
-
-@HiltViewModel
-class ArtistSongsViewModel
-    @Inject
-    constructor(
-        @ApplicationContext context: Context,
-        database: MusicDatabase,
-        savedStateHandle: SavedStateHandle,
-    ) : ViewModel() {
-        private val artistId = savedStateHandle.get<String>("artistId")!!
-        val artist =
-            database
-                .artist(artistId)
-                .stateIn(viewModelScope, SharingStarted.Lazily, null)
-
-        val songs =
-            context.dataStore.data
-                .map {
-                    Triple(
-                        it[ArtistSongSortTypeKey].toEnum(ArtistSongSortType.CREATE_DATE) to (
-                            it[ArtistSongSortDescendingKey]
-                                ?: true
-                        ),
-                        it[HideExplicitKey] ?: false,
-                        it[HideVideoKey] ?: false,
-                    )
-                }.distinctUntilChanged()
-                .flatMapLatest { (sortDesc, hideExplicit, hideVideo) ->
-                    val (sortType, descending) = sortDesc
-                    database.artistSongs(artistId, sortType, descending).map {
-                        it.filterExplicit(hideExplicit).filterVideo(hideVideo)
-                    }
-                }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     }
 
 @HiltViewModel

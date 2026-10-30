@@ -100,21 +100,6 @@ class ImmersivePlayerViewModel @Inject constructor(
             ImmersivePlayerAction.OpenAlbum -> {
                 currentModel()?.albumId?.let { eventChannel.trySend(ImmersivePlayerEvent.OpenAlbum(it)) }
             }
-            ImmersivePlayerAction.OpenArtists -> {
-                val artists = currentModel()?.artists.orEmpty().filter { !it.id.isNullOrBlank() }.distinctBy { it.id }
-                if (artists.size > 1) {
-                    updateModel { it.copy(showArtistDialog = true) }
-                } else {
-                    artists.singleOrNull()?.id?.let { eventChannel.trySend(ImmersivePlayerEvent.OpenArtist(it)) }
-                }
-            }
-            ImmersivePlayerAction.DismissArtistDialog -> updateModel { it.copy(showArtistDialog = false) }
-            is ImmersivePlayerAction.OpenArtist -> {
-                if (currentModel()?.artists?.any { it.id == action.id } == true) {
-                    updateModel { it.copy(showArtistDialog = false) }
-                    eventChannel.trySend(ImmersivePlayerEvent.OpenArtist(action.id))
-                }
-            }
             ImmersivePlayerAction.OpenMenu -> eventChannel.trySend(ImmersivePlayerEvent.OpenMenu)
         }
     }
@@ -129,7 +114,6 @@ class ImmersivePlayerViewModel @Inject constructor(
                     durationMs = old.durationMs,
                     volume = old.volume,
                     seekPositionMs = old.seekPositionMs,
-                    showArtistDialog = old.showArtistDialog && old.artists == mapped.artists,
                 )
             } else {
                 mapped

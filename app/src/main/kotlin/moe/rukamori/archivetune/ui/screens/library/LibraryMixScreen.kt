@@ -84,7 +84,6 @@ import moe.rukamori.archivetune.extensions.toMediaItem
 import moe.rukamori.archivetune.playback.queues.ListQueue
 import moe.rukamori.archivetune.ui.component.ExpressivePullToRefreshBox
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.viewmodels.LibraryMixViewModel
 import moe.rukamori.archivetune.viewmodels.LibraryRefreshState
@@ -559,10 +558,7 @@ fun LibraryMixScreen(
                                     Column(
                                         modifier =
                                             Modifier
-                                                .width(80.dp)
-                                                .clickable {
-                                                    navController.navigateToArtist(artist.id)
-                                                },
+                                                .width(80.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                     ) {
                                         AsyncImage(

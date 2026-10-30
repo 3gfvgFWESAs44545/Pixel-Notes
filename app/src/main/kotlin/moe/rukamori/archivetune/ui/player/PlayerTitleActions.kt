@@ -19,7 +19,6 @@ import androidx.navigation.NavController
 import moe.rukamori.archivetune.models.MediaMetadata
 import moe.rukamori.archivetune.ui.component.BottomSheetState
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 
 /**
  * Centralized *behavior* for the title/artist block shared by every player design style.
@@ -37,8 +36,6 @@ import moe.rukamori.archivetune.ui.utils.navigateToArtist
 class PlayerTitleActions(
     /** Navigate to the current song's album (no-op if the song has no album). */
     val onTitleClick: () -> Unit,
-    /** Navigate to a specific artist by id (no-op for blank ids). */
-    val onArtistClick: (artistId: String) -> Unit,
     /** Copy the song title to the clipboard and show a toast. */
     val onCopyTitle: () -> Unit,
     /** Copy the comma-joined artist names to the clipboard and show a toast. */
@@ -68,12 +65,6 @@ fun rememberPlayerTitleActions(
                     // home screen failed to collapse the player reliably.)
                     state.collapseSoft()
                     navController.navigateToAlbum(album.id)
-                }
-            },
-            onArtistClick = { artistId ->
-                if (artistId.isNotBlank()) {
-                    state.collapseSoft()
-                    navController.navigateToArtist(artistId)
                 }
             },
             onCopyTitle = {

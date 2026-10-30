@@ -45,7 +45,6 @@ import moe.rukamori.archivetune.playback.queues.ListQueue
 import moe.rukamori.archivetune.ui.component.*
 import moe.rukamori.archivetune.ui.menu.SongMenu
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.viewmodels.LocalFilter
 import moe.rukamori.archivetune.viewmodels.LocalSearchViewModel
 
@@ -294,10 +293,7 @@ fun LocalSearchScreen(
                                 artist = item,
                                 modifier =
                                     Modifier
-                                        .clickable {
-                                            onDismiss()
-                                            navController.navigateToArtist(item.id)
-                                        }.animateItem(),
+                                        .animateItem(),
                             )
                         }
 

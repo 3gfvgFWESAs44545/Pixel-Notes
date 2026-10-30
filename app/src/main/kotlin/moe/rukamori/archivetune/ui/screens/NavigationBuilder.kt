@@ -29,10 +29,6 @@ import androidx.navigation.navArgument
 import moe.rukamori.archivetune.musicrecognition.MusicRecognitionRoute
 import moe.rukamori.archivetune.musicrecognition.MusicRecognitionDetailsRoute
 import moe.rukamori.archivetune.ui.screens.BrowseScreen
-import moe.rukamori.archivetune.ui.screens.artist.ArtistAlbumsScreen
-import moe.rukamori.archivetune.ui.screens.artist.ArtistItemsScreen
-import moe.rukamori.archivetune.ui.screens.artist.ArtistScreen
-import moe.rukamori.archivetune.ui.screens.artist.ArtistSongsScreen
 import moe.rukamori.archivetune.ui.screens.library.LibraryScreen
 import moe.rukamori.archivetune.ui.screens.library.LocalSongScreen
 import moe.rukamori.archivetune.ui.screens.musicrecognition.MusicRecognitionScreen
@@ -225,58 +221,6 @@ fun NavGraphBuilder.navigationBuilder(
             ),
     ) {
         AlbumScreen(navController, scrollBehavior)
-    }
-    composable(
-        route = "artist/{artistId}",
-        arguments =
-            listOf(
-                navArgument("artistId") {
-                    type = NavType.StringType
-                },
-            ),
-    ) {
-        ArtistScreen(navController, scrollBehavior)
-    }
-    composable(
-        route = "artist/{artistId}/songs",
-        arguments =
-            listOf(
-                navArgument("artistId") {
-                    type = NavType.StringType
-                },
-            ),
-    ) {
-        ArtistSongsScreen(navController, scrollBehavior)
-    }
-    composable(
-        route = "artist/{artistId}/albums",
-        arguments =
-            listOf(
-                navArgument("artistId") {
-                    type = NavType.StringType
-                },
-            ),
-    ) {
-        ArtistAlbumsScreen(navController, scrollBehavior)
-    }
-    composable(
-        route = "artist/{artistId}/items?browseId={browseId}&params={params}",
-        arguments =
-            listOf(
-                navArgument("artistId") {
-                    type = NavType.StringType
-                },
-                navArgument("browseId") {
-                    type = NavType.StringType
-                    nullable = true
-                },
-                navArgument("params") {
-                    type = NavType.StringType
-                    nullable = true
-                },
-            ),
-    ) {
-        ArtistItemsScreen(navController, scrollBehavior)
     }
     composable(
         route = "online_playlist/{playlistId}",

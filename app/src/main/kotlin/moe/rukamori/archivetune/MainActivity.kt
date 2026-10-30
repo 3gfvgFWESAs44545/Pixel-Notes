@@ -290,7 +290,6 @@ import moe.rukamori.archivetune.ui.theme.extractWallpaperThemeColor
 import moe.rukamori.archivetune.ui.utils.appBarScrollBehavior
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.ui.utils.navigateToAlbum
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.ui.utils.resetHeightOffset
 import moe.rukamori.archivetune.utils.PreferenceStore
 import moe.rukamori.archivetune.utils.SyncUtils
@@ -1235,8 +1234,7 @@ class MainActivity : ComponentActivity() {
                         previousRoute = currentRoute
 
                         if ((
-                                currentRoute?.startsWith("artist/") == true ||
-                                    currentRoute?.startsWith("album/") == true ||
+                                currentRoute?.startsWith("album/") == true ||
                                     currentRoute?.startsWith("local_playlist/") == true
                             ) &&
                             playerBottomSheetState.isExpandedOrExpanding
@@ -2610,12 +2608,6 @@ class MainActivity : ComponentActivity() {
             "browse" -> {
                 uri.lastPathSegment?.let { browseId ->
                     navController.navigateToAlbum(browseId)
-                }
-            }
-
-            "channel", "c" -> {
-                uri.lastPathSegment?.let { artistId ->
-                    navController.navigateToArtist(artistId)
                 }
             }
 

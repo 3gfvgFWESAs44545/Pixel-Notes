@@ -84,7 +84,6 @@ import moe.rukamori.archivetune.ui.component.ItemThumbnail
 import moe.rukamori.archivetune.ui.component.LocalMenuState
 import moe.rukamori.archivetune.ui.menu.ArtistMenu
 import moe.rukamori.archivetune.ui.screens.Screens
-import moe.rukamori.archivetune.ui.utils.navigateToArtist
 import moe.rukamori.archivetune.utils.rememberEnumPreference
 import moe.rukamori.archivetune.utils.rememberPreference
 import moe.rukamori.archivetune.viewmodels.LibraryArtistsViewModel
@@ -168,9 +167,7 @@ fun LibraryArtistsScreen(
                                 .fillMaxHeight()
                                 .clip(RoundedCornerShape(36.dp))
                                 .background(MaterialTheme.colorScheme.primaryContainer)
-                                .clickable {
-                                    topArtist?.let { navController.navigateToArtist(it.artist.id) }
-                                }.padding(16.dp),
+                                .padding(16.dp),
                     ) {
                         Column(
                             modifier = Modifier.fillMaxHeight(),
@@ -514,7 +511,7 @@ fun LibraryArtistsScreen(
                             .clip(RoundedCornerShape(28.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                             .combinedClickable(
-                                onClick = { navController.navigateToArtist(artist.id) },
+                                onClick = {},
                                 onLongClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     menuState.show {
@@ -619,10 +616,7 @@ fun LibraryArtistsScreen(
                             Column(
                                 modifier =
                                     Modifier
-                                        .width(72.dp)
-                                        .clickable {
-                                            navController.navigateToArtist(artist.id)
-                                        },
+                                        .width(72.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 ItemThumbnail(
