@@ -253,12 +253,7 @@ fun LibraryMixScreen(
                                 modifier = Modifier.weight(1f),
                                 onClick = { navController.navigate("history") },
                             )
-                        }
 
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
                             ShortcutCard(
                                 title = topPlaylistTitle,
                                 countText = stringResource(R.string.all_time),
@@ -268,7 +263,12 @@ fun LibraryMixScreen(
                                 modifier = Modifier.weight(1f),
                                 onClick = { navController.navigate("top_playlist/$topSize") },
                             )
+                        }
 
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             ShortcutCard(
                                 title = stringResource(R.string.filter_playlists),
                                 countText = "${playlists.size} playlists",
@@ -278,12 +278,7 @@ fun LibraryMixScreen(
                                 modifier = Modifier.weight(1f),
                                 onClick = { navController.navigate(LibraryPlaylistsRoute) },
                             )
-                        }
 
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
                             // Offline/Downloaded
                             ShortcutCard(
                                 title = stringResource(R.string.offline_shortcut),
@@ -294,8 +289,6 @@ fun LibraryMixScreen(
                                 modifier = Modifier.weight(1f),
                                 onClick = { navController.navigate("auto_playlist/downloaded") },
                             )
-
-                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }
